@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #F5F0EC;
+      color: #5C4033;
+      line-height: 1.4;
+      padding: 10px;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 100%;
+      width: 100%;
+      margin: 0 auto;
+      background: white;
+      box-shadow: 0 2px 10px rgba(92, 64, 51, 0.1);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+
+    .header {
+      background: linear-gradient(135deg, #2C6E49 0%, #73A942 100%);
+      color: white;
+      padding: 15px 20px;
+      text-align: center;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 300;
+      letter-spacing: 1px;
+      margin-bottom: 4px;
+    }
+
+    .header .subtitle {
+      font-size: 12px;
+      opacity: 0.9;
+      font-weight: 300;
+    }
+
+    .content {
+      padding: 15px;
+    }
+
+    .section {
+      margin-bottom: 15px;
+      background: #F5F0EC;
+      padding: 12px;
+      border-radius: 6px;
+      border-left: 3px solid #2C6E49;
+    }
+
+    .section h2 {
+      color: #2C6E49;
+      font-size: 14px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+    }
+
+    .section h2::before {
+      content: '';
+      width: 2px;
+      height: 14px;
+      background: #E4B363;
+      margin-right: 8px;
+      border-radius: 1px;
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .label {
+      font-size: 10px;
+      color: #A89F91;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .value {
+      font-size: 12px;
+      color: #5C4033;
+      font-weight: 500;
+    }
+
+    .scores-section {
+      background: white;
+      border: 1px solid #C9B79C;
+    }
+
+    .score-item {
+      margin-bottom: 12px;
+    }
+
+    .score-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .score-label {
+      font-weight: 600;
+      color: #5C4033;
+      font-size: 11px;
+    }
+
+    .score-value {
+      font-weight: 700;
+      color: #2C6E49;
+      font-size: 11px;
+    }
+
+    .progress-bar {
+      height: 4px;
+      background-color: #F5F0EC;
+      border-radius: 2px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      border-radius: 2px;
+      transition: width 0.3s ease;
+      position: relative;
+    }
+
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.3) 50%, transparent 100%);
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+      0% {
+        transform: translateX(-100%);
+      }
+
+      100% {
+        transform: translateX(100%);
+      }
+    }
+
+    .yield-fill {
+      background: linear-gradient(90deg, #73A942, #2C6E49);
+    }
+
+    .soil-fill {
+      background: linear-gradient(90deg, #73A942, #2C6E49);
+    }
+
+    .climate-fill {
+      background: linear-gradient(90deg, #E4B363, #D97D54);
+    }
+
+    .footer {
+      background: #5C4033;
+      color: #F5F0EC;
+      text-align: center;
+      padding: 8px;
+      font-size: 9px;
+      letter-spacing: 0.3px;
+    }
+
+    .footer strong {
+      color: #E4B363;
+    }
+
+    @media (min-width: 768px) {
+      .container {
+        max-width: 800px;
+      }
+
+      .content {
+        padding: 20px;
+      }
+
+      .header {
+        padding: 20px;
+      }
+
+      .section {
+        padding: 15px;
+        margin-bottom: 20px;
+      }
+
+      .info-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+
+      .header h1 {
+        font-size: 24px;
+      }
+
+      .section h2 {
+        font-size: 16px;
+      }
+
+      .label {
+        font-size: 11px;
+      }
+
+      .value {
+        font-size: 14px;
+      }
+
+      .score-label,
+      .score-value {
+        font-size: 13px;
+      }
+
+      .progress-bar {
+        height: 6px;
+      }
+
+      .footer {
+        padding: 12px;
+        font-size: 10px;
+      }
+    }
+
+    @media print {
+      body {
+        padding: 0;
+        background: white;
+      }
+
+      .container {
+        box-shadow: none;
+        border-radius: 0;
+      }
+
+      .header {
+        padding: 12px 15px;
+      }
+
+      .content {
+        padding: 12px;
+      }
+
+      .section {
+        margin-bottom: 10px;
+        padding: 10px;
+      }
+
+      .score-item {
+        margin-bottom: 8px;
+      }
+
+      .footer {
+        padding: 6px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>AgriSure.ai</h1>
+      <div class="subtitle">Farmer Loan Report</div>
+    </div>
+
+    <div class="content">
+      <div class="section">
+        <h2>Farmer Information</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="label">Name</div>
+            <div class="value">{{name}}</div>
+          </div>
+          <div class="info-item">
+            <div class="label">Email</div>
+            <div class="value">{{email}}</div>
+          </div>
+          <div class="info-item">
+            <div class="label">Phone</div>
+            <div class="value">{{phone}}</div>
+          </div>
+          <div class="info-item">
+            <div class="label">Land Area</div>
+            <div class="value">{{acresOfLand}} acres</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>Crop & Cultivation</h2>
+        <div class="info-grid">
+          <div class="info-item">
+            <div class="label">Crop</div>
+            <div class="value">{{cropName}}</div>
+          </div>
+          <div class="info-item">
+            <div class="label">Planting Date</div>
+            <div class="value">{{plantingDate}}</div>
+          </div>
+          <div class="info-item">
+            <div class="label">Harvest Date</div>
+            <div class="value">{{expectedHarvestDate}}</div>
+          </div>
+          <div class="info-item">
+            <div class="label">Soil Type</div>
+            <div class="value">{{soilType}}</div>
+          </div>
+          <div class="info-item">
+            <div class="label">Irrigation</div>
+            <div class="value">{{irrigationMethod}}</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section scores-section">
+        <h2>Performance Scores</h2>
+
+        <div class="score-item">
+          <div class="score-header">
+            <div class="score-label">Predicted Yield</div>
+            <div class="score-value">{{predictedYieldKgPerAcre}} kg/Acre</div>
+          </div>
+        </div>
+
+        <div class="score-item">
+          <div class="score-header">
+            <div class="score-label">Soil Health</div>
+            <div class="score-value">{{soilHealthScore}}/100</div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill soil-fill" style="width: {{soilHealthScore}}%"></div>
+          </div>
+        </div>
+
+        <div class="score-item">
+          <div class="score-header">
+            <div class="score-label">Climate Score</div>
+            <div class="score-value">{{climateScore}}/100</div>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill climate-fill" style="width: {{climateScore}}%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      Generated by <strong>AgriSure.ai</strong> – Empowering Smart Agriculture
+    </div>
+  </div>
+</body>
+
+</html>
