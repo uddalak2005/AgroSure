@@ -14,6 +14,6 @@ router.post("/create",
     insuranceController.createInsurance
 );
 
-router.post("/submit/:id", insuranceController.submitInsurance)
+// router.post("/submit/:id", insuranceController.submitInsurance)
 
 export default router;

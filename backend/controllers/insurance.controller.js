@@ -3,6 +3,7 @@ import handleMultipleUploads from "../utils/handleFileUpload.util.js";
 import sendNotification from "../services/sendNotification.service.js";
 import InsuranceCompany from "../models/insuranceCompanies.model.js";
 import getAIInsights from "../services/getAIInsights.service.js";
+import User from "../models/user.schema.js";
 
 class InsuranceController {
     async createInsurance(req, res) {
@@ -51,11 +52,39 @@ class InsuranceController {
                 fieldImage,
             });
 
+            const userRecord = await User.findOne({ uid });
+
+            const name = userRecord.name;
+
             console.log('newInsurance : ', newInsurance);
 
             const payLoad = await getAIInsights.getDocScore(damageImage, cropImage, fieldImage);
 
             console.log('payLoad : ', payLoad);
+
+            const uinPrefix = newInsurance.uin.slice(0, 3).toUpperCase();
+
+            const insurer = await InsuranceCompany.findOne({ uinPrefix });
+
+            if (!insurer || !insurer.email) {
+                return res.status(404).json({ message: "No matching insurer found for UIN prefix." });
+            }
+
+            const insurerEmail = insurer.email;
+
+            const emailSent = await sendNotification.sendInsuranceClaimNotificationEmail(
+                insurerEmail,
+                newInsurance,
+                payLoad,
+                name
+            );
+
+            if (!emailSent) {
+                return res.status(500).json({ message: "Failed to send insurance email." });
+            }
+
+            newInsurance.claimStatus = "submitted";
+            await newInsurance.save();
 
 
             return res
@@ -73,55 +102,6 @@ class InsuranceController {
         }
     }
 
-    async submitInsurance(req, res) {
-        try {
-            const { id } = req.params;
-
-            if (!id) {
-                return res.status(400).json({ message: "Insurance ID not provided." });
-            }
-
-            const insuranceRecord = await Insurance.findById(id);
-            if (!insuranceRecord) {
-                return res.status(404).json({ message: "Insurance record not found." });
-            }
-
-            if (insuranceRecord.claimStatus === "submitted") {
-                return res.status(400).json({ message: "Claim already submitted." });
-            }
-
-            const uinPrefix = insuranceRecord.uin.slice(0, 3).toUpperCase();
-
-            const insurer = await InsuranceCompany.findOne({ uinPrefix });
-
-            if (!insurer || !insurer.email) {
-                return res.status(404).json({ message: "No matching insurer found for UIN prefix." });
-            }
-
-            const insurerEmail = insurer.email;
-
-            const emailSent = await sendNotification.sendInsuranceClaimNotificationEmail(
-                insurerEmail,
-                insuranceRecord
-            );
-
-            if (!emailSent) {
-                return res.status(500).json({ message: "Failed to send insurance email." });
-            }
-
-            insuranceRecord.claimStatus = "submitted";
-            await insuranceRecord.save();
-
-            return res.status(200).json({
-                message: "Insurance claim submitted and email sent successfully.",
-                insurance: insuranceRecord,
-            });
-
-        } catch (err) {
-            console.error("Error in submitInsurance:", err.message);
-            return res.status(500).json({ message: "Server error occurred." });
-        }
-    }
 
     async updateInsurance(req, res) {
         try {

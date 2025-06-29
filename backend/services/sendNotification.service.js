@@ -143,10 +143,9 @@ class SendNotification {
     }
   }
 
-  async sendInsuranceClaimNotificationEmail(bankEmail, insuranceRecord) {
+  async sendInsuranceClaimNotificationEmail(bankEmail, insuranceRecord, payLoad, name) {
     try {
       const {
-        name,
         uid,
         location,
         provider,
@@ -155,29 +154,74 @@ class SendNotification {
         policyDoc,
         damageImage,
         cropImage,
+        fieldImage,
       } = insuranceRecord;
 
-      console.log(policyDoc, damageImage, cropImage);
+      console.log(policyDoc, damageImage, cropImage,fieldImage);
+
+      // Extract AI insights data from payload with fallbacks
+      const metadata = payLoad?.metadata || {};
+      const damageDetection = payLoad?.damageDetection || {};
+      const cropType = payLoad?.cropType || {};
 
       const html = `
       <div style="font-family:Arial,sans-serif; padding:20px; background:#f4f4f4;">
-        <div style="max-width:600px; margin:auto; background:white; border-radius:8px;">
+        <div style="max-width:800px; margin:auto; background:white; border-radius:8px;">
           <div style="background:#0277bd; color:white; padding:16px;">
             <h2 style="margin:0;">🌾 New Insurance Claim - AgriSure.ai</h2>
           </div>
           <div style="padding:20px;">
             <p>Hello,</p>
             <p>A new insurance claim has been submitted by a farmer. Please find the details below:</p>
-            <table style="width:100%; border-collapse:collapse;">
-              <tr><td><strong>👤 Farmer Name:</strong></td><td>${name}</td></tr>
-              <tr><td><strong>🆔 UID:</strong></td><td>${uid}</td></tr>
-              <tr><td><strong>🌍 Location:</strong></td><td>Lat: ${location.lat
-        }, Long: ${location.long}</td></tr>
-              <tr><td><strong>🏢 Provider:</strong></td><td>${provider}</td></tr>
-              <tr><td><strong>🪪 UIN:</strong></td><td>${uin}</td></tr>
-              <tr><td><strong>📄 Policy No.:</strong></td><td>${policyNumber}</td></tr>
+            
+            <h3 style="color:#0277bd; border-bottom:2px solid #0277bd; padding-bottom:5px;">📋 Basic Claim Information</h3>
+            <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+              <tr><td style="padding:8px; border:1px solid #ddd;"><strong>👤 Farmer Name:</strong></td><td style="padding:8px; border:1px solid #ddd;">${name || 'Not provided'}</td></tr>
+              <tr><td style="padding:8px; border:1px solid #ddd;"><strong>🆔 UID:</strong></td><td style="padding:8px; border:1px solid #ddd;">${uid || 'Not provided'}</td></tr>
+              <tr><td style="padding:8px; border:1px solid #ddd;"><strong>🌍 Location:</strong></td><td style="padding:8px; border:1px solid #ddd;">Lat: ${location?.lat || 'Not provided'}, Long: ${location?.long || 'Not provided'}</td></tr>
+              <tr><td style="padding:8px; border:1px solid #ddd;"><strong>🏢 Provider:</strong></td><td style="padding:8px; border:1px solid #ddd;">${provider || 'Not provided'}</td></tr>
+              <tr><td style="padding:8px; border:1px solid #ddd;"><strong>🪪 UIN:</strong></td><td style="padding:8px; border:1px solid #ddd;">${uin || 'Not provided'}</td></tr>
+              <tr><td style="padding:8px; border:1px solid #ddd;"><strong>📄 Policy No.:</strong></td><td style="padding:8px; border:1px solid #ddd;">${policyNumber || 'Not provided'}</td></tr>
             </table>
-            <p style="margin-top:20px;">Relevant documents are attached below for review.</p>
+
+            <h3 style="color:#0277bd; border-bottom:2px solid #0277bd; padding-bottom:5px;">🔍 AI Analysis Results</h3>
+            
+            <h4 style="color:#2e7d32; margin-top:20px;">📸 Image Metadata Analysis</h4>
+            <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+              <tr><td style="padding:8px; border:1px solid #ddd;"><strong>📍 Location Address:</strong></td><td style="padding:8px; border:1px solid #ddd;">${metadata.address || 'Not available'}</td></tr>
+              <tr><td style="padding:8px; border:1px solid #ddd;"><strong>📱 Device Model:</strong></td><td style="padding:8px; border:1px solid #ddd;">${metadata.device_model || 'Not available'}</td></tr>
+              <tr><td style="padding:8px; border:1px solid #ddd;"><strong>📅 Timestamp:</strong></td><td style="padding:8px; border:1px solid #ddd;">${metadata.timestamp || 'Not available'}</td></tr>
+              <tr><td style="padding:8px; border:1px solid #ddd;"><strong>🎯 GPS Coordinates:</strong></td><td style="padding:8px; border:1px solid #ddd;">Lat: ${metadata.gps_latitude || 'Not available'}, Long: ${metadata.gps_longitude || 'Not available'}</td></tr>
+              <tr><td style="padding:8px; border:1px solid #ddd;"><strong>🔒 Authenticity Score:</strong></td><td style="padding:8px; border:1px solid #ddd;">${metadata.authenticity_score || 'Not available'}/100</td></tr>
+              <tr><td style="padding:8px; border:1px solid #ddd;"><strong>⚠️ Suspicious Reasons:</strong></td><td style="padding:8px; border:1px solid #ddd;">${metadata.suspicious_reasons ? metadata.suspicious_reasons.join(', ') : 'None detected'}</td></tr>
+            </table>
+
+            <h4 style="color:#2e7d32; margin-top:20px;">🌾 Crop Damage Assessment</h4>
+            <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+              <tr><td style="padding:8px; border:1px solid #ddd;"><strong>🔍 Damage Status:</strong></td><td style="padding:8px; border:1px solid #ddd; color:${damageDetection.prediction === 'damaged' ? '#d32f2f' : '#2e7d32'};">${damageDetection.prediction || 'Not available'}</td></tr>
+              <tr><td style="padding:8px; border:1px solid #ddd;"><strong>📊 Confidence Level:</strong></td><td style="padding:8px; border:1px solid #ddd;">${damageDetection.confidence ? `${damageDetection.confidence.toFixed(2)}%` : 'Not available'}</td></tr>
+              <tr><td style="padding:8px; border:1px solid #ddd;"><strong>🤖 AI Model Used:</strong></td><td style="padding:8px; border:1px solid #ddd;">${damageDetection.model || 'Not available'}</td></tr>
+              <tr><td style="padding:8px; border:1px solid #ddd;"><strong>✅ Analysis Status:</strong></td><td style="padding:8px; border:1px solid #ddd;">${damageDetection.status || 'Not available'}</td></tr>
+            </table>
+
+            <h4 style="color:#2e7d32; margin-top:20px;">🌱 Crop Type Identification</h4>
+            <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
+              <tr><td style="padding:8px; border:1px solid #ddd;"><strong>🌾 Identified Crop:</strong></td><td style="padding:8px; border:1px solid #ddd;">${cropType.predicted_class || 'Not available'}</td></tr>
+              <tr><td style="padding:8px; border:1px solid #ddd;"><strong>📊 Confidence Level:</strong></td><td style="padding:8px; border:1px solid #ddd;">${cropType.confidence_percent ? `${cropType.confidence_percent.toFixed(2)}%` : 'Not available'}</td></tr>
+              <tr><td style="padding:8px; border:1px solid #ddd;"><strong>✅ Analysis Status:</strong></td><td style="padding:8px; border:1px solid #ddd;">${cropType.status || 'Not available'}</td></tr>
+            </table>
+
+            <div style="background:#fff3cd; border:1px solid #ffeaa7; padding:15px; border-radius:5px; margin:20px 0;">
+              <h4 style="margin:0; color:#856404;">📋 Audit Summary</h4>
+              <ul style="margin:10px 0; padding-left:20px;">
+                <li><strong>Image Authenticity:</strong> ${metadata.authenticity_score ? (metadata.authenticity_score >= 70 ? '✅ Good' : metadata.authenticity_score >= 50 ? '⚠️ Moderate' : '❌ Low') : 'Not available'}</li>
+                <li><strong>Damage Detection:</strong> ${damageDetection.prediction === 'damaged' ? '✅ Damage confirmed' : damageDetection.prediction === 'non_damaged' ? '❌ No damage detected' : 'Not available'}</li>
+                <li><strong>Crop Verification:</strong> ${cropType.predicted_class ? `✅ Identified as ${cropType.predicted_class}` : 'Not available'}</li>
+                <li><strong>Location Verification:</strong> ${metadata.address ? '✅ Location data available' : '❌ Location data missing'}</li>
+              </ul>
+            </div>
+
+            <p style="margin-top:20px;"><strong>📎 Supporting Documents:</strong> Relevant documents are attached below for detailed review.</p>
           </div>
           <div style="background:#eeeeee; text-align:center; padding:10px; font-size:12px; color:#666;">
             © ${new Date().getFullYear()} AgriSure.ai | Smart Agri-Insurance
@@ -188,7 +232,7 @@ class SendNotification {
 
       const attachments = [];
 
-      const docs = [policyDoc, damageImage, cropImage];
+      const docs = [policyDoc, damageImage, cropImage, fieldImage];
       for (const doc of docs) {
         if (doc && doc.publicId) {
           try {
