@@ -6,7 +6,6 @@ const router = express.Router();
 
 router.post("/create",
     upload.fields([
-        { name: "policyDoc", maxCount: 1 },
         { name: "damageImage", maxCount: 1 },
         { name: "cropImage", maxCount: 1 },
         { name: "fieldImage", maxCount: 1 }

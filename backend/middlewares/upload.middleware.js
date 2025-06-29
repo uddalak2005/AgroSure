@@ -19,6 +19,7 @@ const fileFilter = (req, file, cb) => {
     'image/jpeg',
     'image/jpg',
     'application/pdf',
+    'text/plain',
     'application/msword',
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document' // fixed typo: docuemnt -> document
   ];

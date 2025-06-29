@@ -33,7 +33,6 @@ const insuranceSchema = new mongoose.Schema({
         fileurl: String,
         publicId: {
             type: String,
-            required: true
         },
         originalName: String,
         fileType: String,
