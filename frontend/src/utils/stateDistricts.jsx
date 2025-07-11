@@ -1,0 +1,22 @@
+export const stateDistricts = {
+    "Andhra Pradesh": ["Srikakulam", "Visakhapatnam", "East Godavari", "West Godavari", "Krishna"],
+    "Assam": ["Cachar", "Darrang", "Dibrugarh", "Goalpara", "Kamrup"],
+    "Bihar": ["Champaran", "Muzaffarpur", "Darbhanga", "Saharsa", "Purnea"],
+    "Chhattisgarh": ["Durg", "Bastar", "Raipur", "Bilaspur", "Raigarh"],
+    "Gujarat": ["Ahmedabad", "Amreli", "Banaskantha", "Bharuch", "Vadodara / Baroda"],
+    "Haryana": ["Hissar", "Gurgaon", "Jind", "Mahendragarh / Narnaul", "Ambala"],
+    "Himachal Pradesh": ["Bilashpur", "Chamba", "Kangra", "Kinnaur", "Kullu"],
+    "Jharkhand": ["Santhal Paragana / Dumka", "Hazaribagh", "Dhanbad", "Palamau", "Ranchi"],
+    "Karnataka": ["Bangalore", "Kolar", "Tumkur", "Mysore", "Mandya"],
+    "Kerala": ["Alappuzha", "Kannur", "Eranakulam", "Kottayam", "Kozhikode"],
+    "Madhya Pradesh": ["Jabalpur", "Balaghat", "Chhindwara", "Narsinghpur", "Seoni / Shivani"],
+    "Maharashtra": ["Bombay", "Thane", "Raigad", "Ratnagiri", "Nasik"],
+    "Orissa": ["Balasore", "Bolangir", "Cuttack", "Dhenkanal", "Ganjam"],
+    "Punjab": ["Gurdaspur", "Amritsar", "Kapurthala", "Jalandhar", "Hoshiarpur"],
+    "Rajasthan": ["Ajmer", "Alwar", "Banswara", "Barmer", "Bharatpur"],
+    "Tamil Nadu": ["Chengalpattu MGR / Kanchipuram", "South Arcot / Cuddalore", "North Arcot / Vellore", "Salem", "Coimbatore"],
+    "Telangana": ["Hyderabad", "Nizamabad", "Medak", "Mahabubnagar", "Nalgonda"],
+    "Uttar Pradesh": ["Saharanpur", "Muzaffarnagar", "Meerut", "Buland Shahar", "Aligarh"],
+    "Uttarakhand": ["Nainital", "Almorah", "Pithorgarh", "Chamoli", "Uttar Kashi"],
+    "West Bengal": ["24 Parganas", "Nadia", "Murshidabad", "Burdwan", "Birbhum"]
+  }
