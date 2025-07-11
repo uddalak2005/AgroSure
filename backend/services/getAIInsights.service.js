@@ -36,28 +36,38 @@ class GetAIInsighits {
             console.log('cropImage : ', cropImage);
             console.log('fieldImage : ', fieldImage);
 
+            // Prepare the request payload for damage detection
+            const damageRequest = {
+                publicId: damageImage.publicId,
+                fileType: damageImage.fileType,
+                originalName: damageImage.originalName
+            };
 
-            const responseDamageDetection = await axios.post(`${FLASK_API}/api/damage_detection`, {
-                damageImage,
-            });
+            const responseDamageDetection = await axios.post(`${FLASK_API}/api/damage_detection`, damageRequest);
 
             console.log('responseDamageDetection : ', responseDamageDetection.data);
 
-            const responseMetadata = await axios.post(`${FLASK_API}/api/exif_metadata`, {
-                fieldImage
-            });
+            // Prepare the request payload for metadata extraction
+            const metadataRequest = {
+                publicId: fieldImage.publicId,
+                fileType: fieldImage.fileType,
+                originalName: fieldImage.originalName
+            };
+
+            const responseMetadata = await axios.post(`${FLASK_API}/api/exif_metadata`, metadataRequest);
 
             console.log('responseMetadata : ', responseMetadata.data);
 
-            const responseCropType = await axios.post(`${FLASK_API}/api/crop_type`, {
-                cropImage
-            });
+            // Prepare the request payload for crop type detection
+            const cropRequest = {
+                publicId: cropImage.publicId,
+                fileType: cropImage.fileType,
+                originalName: cropImage.originalName
+            };
+
+            const responseCropType = await axios.post(`${FLASK_API}/api/crop_type`, cropRequest);
 
             console.log('responseCropType : ', responseCropType.data);
-
-
-
-
 
             return {
                 metadata: responseMetadata.data,

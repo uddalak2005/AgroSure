@@ -83,36 +83,37 @@ async def root():
     }
 
 @app.post("/api/exif_metadata")
-async def exif_metadata(fieldImage: ImageRequest):
-    filename = fieldImage.originalName or f"{fieldImage.publicId.split('/')[-1]}.jpg"
+async def exif_metadata(image_request: ImageRequest):
+    filename = image_request.originalName or f"{image_request.publicId.split('/')[-1]}.jpg"
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     
-    if not download_file(fieldImage.publicId, filepath, fieldImage.fileType):
-        raise HTTPException(status_code=500, detail=f"Failed to download image from Cloudinary: {fieldImage.publicId}")
+    if not download_file(image_request.publicId, filepath, image_request.fileType):
+        raise HTTPException(status_code=500, detail=f"Failed to download image from Cloudinary: {image_request.publicId}")
     
     result = engine.get_exif_data(filepath)
     os.remove(filepath)
     return result
 
 @app.post("/api/damage_detection")
-async def damage_detection(damageImage: ImageRequest):
-    filename = damageImage.originalName or f"{damageImage.publicId.split('/')[-1]}.jpg"
+async def damage_detection(image_request: ImageRequest):
+    print(f"Received damage detection request: {image_request}")
+    filename = image_request.originalName or f"{image_request.publicId.split('/')[-1]}.jpg"
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     
-    if not download_file(damageImage.publicId, filepath, damageImage.fileType):
-        raise HTTPException(status_code=500, detail=f"Failed to download image from Cloudinary: {damageImage.publicId}")
+    if not download_file(image_request.publicId, filepath, image_request.fileType):
+        raise HTTPException(status_code=500, detail=f"Failed to download image from Cloudinary: {image_request.publicId}")
     
     result = engine.predict_damage(filepath)
     os.remove(filepath)
     return result
 
 @app.post("/api/crop_type")
-async def crop_type(cropImage: ImageRequest):
-    filename = cropImage.originalName or f"{cropImage.publicId.split('/')[-1]}.jpg"
+async def crop_type(image_request: ImageRequest):
+    filename = image_request.originalName or f"{image_request.publicId.split('/')[-1]}.jpg"
     filepath = os.path.join(UPLOAD_FOLDER, filename)
     
-    if not download_file(cropImage.publicId, filepath, cropImage.fileType):
-        raise HTTPException(status_code=500, detail=f"Failed to download image from Cloudinary: {cropImage.publicId}")
+    if not download_file(image_request.publicId, filepath, image_request.fileType):
+        raise HTTPException(status_code=500, detail=f"Failed to download image from Cloudinary: {image_request.publicId}")
     
     result = engine.predict_crop(filepath)
     os.remove(filepath)

@@ -34,7 +34,7 @@ class InsuranceController {
                     ? fileMetaMap.fieldImage[0]
                     : null;
 
-            if (!damageImage || !cropImage || !fieldImage) {
+            if (!damageImage || !cropImage || !fieldImage || !policyDoc) {
                 return res.status(400).json({
                     message:
                         "All required files (policyDoc, damageImage, cropImage) must be uploaded",
