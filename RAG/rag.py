@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 # Initialize Flask app
 app = Flask(__name__)
-CORS(app, resources={r"/query": {"origins": "*"}})  # Enable CORS for all origins on /query
+CORS(app, resources={r"/*": {"origins": "*"}})  # Enable CORS for all routes and origins
 
 def load_documents_from_file(filepath):
     """Load documents from a text file, one per line, trimmed."""
@@ -40,7 +40,7 @@ if documents is None:
         if not documents:
             raise ValueError("No valid non-empty answers found in dataset")
         
-        logger.info(f"Loaded {len(docs)} documents from 'answers' column in 'train' split")
+        logger.info(f"Loaded {len(documents)} documents from 'answers' column in 'train' split")
     except Exception as e:
         logger.error(f"Failed to load dataset: {str(e)}")
         documents = [
@@ -109,6 +109,19 @@ def rag_system(query):
         logger.error(f"Error in RAG system: {str(e)}")
         return f"Error in RAG system: {str(e)}"
 
+@app.route('/', methods=['GET'])
+def health_check():
+    """Default route to check if the Flask backend is running."""
+    return jsonify({
+        'status': 'success',
+        'message': 'AgriQBot API is running successfully!',
+        'version': '1.0.0',
+        'endpoints': {
+            'query': '/query (GET/POST)',
+            'health': '/ (GET)'
+        }
+    }), 200
+
 @app.route('/query', methods=['POST', 'GET'])
 def handle_query():
     """API endpoint to handle farmer queries via POST (JSON) or GET (query param)."""
@@ -135,5 +148,5 @@ def handle_query():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == "__main__":
-    logger.info("Starting AgriQBot API on port 6000...")
-    app.run(host='0.0.0.0', port=6000, debug=False)
+    logger.info("Starting AgriQBot API on port 8000...")
+    app.run(host="0.0.0.0", port=8000, debug=False)
