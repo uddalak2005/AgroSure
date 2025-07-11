@@ -212,44 +212,45 @@ const InsuranceClaim = ({ user, onBack }) => {
 
   return (
     <div className="min-h-screen bg-agricultural-soft-sand">
-      <div className="p-8">
-        <div className="flex items-center mb-6">
+      <div className="p-4 sm:p-6 lg:p-8">
+        <div className="flex items-center mb-4 sm:mb-6">
           {/* Replaces Button component */}
           <button
             onClick={onBack}
-            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 text-agricultural-soil-brown hover:bg-agricultural-stone-gray/10"
+            className="inline-flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 h-10 px-3 sm:px-4 py-2 text-agricultural-soil-brown hover:bg-agricultural-stone-gray/10"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
+            <span className="hidden sm:inline">Back to Dashboard</span>
+            <span className="sm:hidden">Back</span>
           </button>
         </div>
 
         <div className="max-w-7xl mx-auto">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-agricultural-soil-brown mb-2">
+          <div className="mb-6 sm:mb-8">
+            <h1 className="text-2xl sm:text-3xl font-bold text-agricultural-soil-brown mb-2">
               Insurance Claim
             </h1>
-            <p className="text-agricultural-stone-gray">
+            <p className="text-agricultural-stone-gray text-sm sm:text-base">
               File a crop insurance claim for damages or losses
             </p>
           </div>
 
-          <div className="grid lg:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 lg:gap-8">
             {/* Insurance Claim Form */}
-            <div className="lg:col-span-1">
+            <div className="xl:col-span-1 order-1 xl:order-1">
               {/* Replaces Card component */}
               <div className="rounded-lg border bg-white text-card-foreground shadow-sm warm-shadow border-agricultural-stone-gray/20">
                 {/* Replaces CardHeader */}
-                <div className="flex flex-col space-y-1.5 p-6">
+                <div className="flex flex-col space-y-1.5 p-4 sm:p-6">
                   {/* Replaces CardTitle */}
-                  <h3 className="flex items-center text-2xl font-semibold leading-none tracking-tight text-agricultural-soil-brown">
-                    <Shield className="h-5 w-5 mr-2" />
+                  <h3 className="flex items-center text-xl sm:text-2xl font-semibold leading-none tracking-tight text-agricultural-soil-brown">
+                    <Shield className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Claim Details
                   </h3>
                 </div>
                 {/* Replaces CardContent */}
-                <div className="p-6 pt-0">
-                  <form onSubmit={handleSubmit} className="space-y-6">
+                <div className="p-4 sm:p-6 pt-0">
+                  <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
                     <div>
                       {/* Replaces Label component */}
                       <label htmlFor="provider" className="text-agricultural-soil-brown text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 block">
@@ -311,7 +312,7 @@ const InsuranceClaim = ({ user, onBack }) => {
                         <label htmlFor="policyDocument" className="text-agricultural-soil-brown text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 block">
                           Policy Document (Text file for AI analysis)
                         </label>
-                        <div className="mt-2 border-2 border-dashed border-agricultural-stone-gray/30 rounded-lg p-4">
+                        <div className="mt-2 border-2 border-dashed border-agricultural-stone-gray/30 rounded-lg p-3 sm:p-4">
                           <input
                             id="policyDocument"
                             type="file"
@@ -320,9 +321,9 @@ const InsuranceClaim = ({ user, onBack }) => {
                             className="hidden" // Hides the default file input
                           />
                           {/* Custom styled label to act as the file input button */}
-                          <label htmlFor="policyDocument" className="cursor-pointer flex items-center justify-center space-x-2 text-agricultural-stone-gray hover:text-agricultural-soil-brown">
-                            <FileText className="h-5 w-5" />
-                            <span>{formData.policyDocument ? formData.policyDocument.name : 'Upload Policy Document (.txt for AI analysis)'}</span>
+                          <label htmlFor="policyDocument" className="cursor-pointer flex items-center justify-center space-x-2 text-agricultural-stone-gray hover:text-agricultural-soil-brown text-center">
+                            <FileText className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                            <span className="text-xs sm:text-sm">{formData.policyDocument ? formData.policyDocument.name : 'Upload Policy Document (.txt for AI analysis)'}</span>
                           </label>
                         </div>
                       </div>
@@ -332,7 +333,7 @@ const InsuranceClaim = ({ user, onBack }) => {
                         <label htmlFor="damageImage" className="text-agricultural-soil-brown text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 block">
                           Damage Image
                         </label>
-                        <div className="mt-2 border-2 border-dashed border-agricultural-stone-gray/30 rounded-lg p-4">
+                        <div className="mt-2 border-2 border-dashed border-agricultural-stone-gray/30 rounded-lg p-3 sm:p-4">
                           <input
                             id="damageImage"
                             type="file"
@@ -341,9 +342,9 @@ const InsuranceClaim = ({ user, onBack }) => {
                             className="hidden" // Hides the default file input
                           />
                           {/* Custom styled label to act as the file input button */}
-                          <label htmlFor="damageImage" className="cursor-pointer flex items-center justify-center space-x-2 text-agricultural-stone-gray hover:text-agricultural-soil-brown">
-                            <Camera className="h-5 w-5" />
-                            <span>{formData.damageImage ? formData.damageImage.name : 'Upload Damage Image'}</span>
+                          <label htmlFor="damageImage" className="cursor-pointer flex items-center justify-center space-x-2 text-agricultural-stone-gray hover:text-agricultural-soil-brown text-center">
+                            <Camera className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                            <span className="text-xs sm:text-sm">{formData.damageImage ? formData.damageImage.name : 'Upload Damage Image'}</span>
                           </label>
                         </div>
                       </div>
@@ -353,7 +354,7 @@ const InsuranceClaim = ({ user, onBack }) => {
                         <label htmlFor="cropImage" className="text-agricultural-soil-brown text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 block">
                           Crop Image
                         </label>
-                        <div className="mt-2 border-2 border-dashed border-agricultural-stone-gray/30 rounded-lg p-4">
+                        <div className="mt-2 border-2 border-dashed border-agricultural-stone-gray/30 rounded-lg p-3 sm:p-4">
                           <input
                             id="cropImage"
                             type="file"
@@ -362,16 +363,16 @@ const InsuranceClaim = ({ user, onBack }) => {
                             className="hidden" // Hides the default file input
                           />
                           {/* Custom styled label to act as the file input button */}
-                          <label htmlFor="cropImage" className="cursor-pointer flex items-center justify-center space-x-2 text-agricultural-stone-gray hover:text-agricultural-soil-brown">
-                            <Upload className="h-5 w-5" />
-                            <span>{formData.cropImage ? formData.cropImage.name : 'Upload Crop Image'}</span>
+                          <label htmlFor="cropImage" className="cursor-pointer flex items-center justify-center space-x-2 text-agricultural-stone-gray hover:text-agricultural-soil-brown text-center">
+                            <Upload className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                            <span className="text-xs sm:text-sm">{formData.cropImage ? formData.cropImage.name : 'Upload Crop Image'}</span>
                           </label>
                         </div>
                       </div>
                     </div>
 
                     {/* Replaces Button component */}
-                    <div className='flex justify-center flex-row gap-4'>
+                    <div className='flex flex-col sm:flex-row justify-center gap-3 sm:gap-4'>
                     <button
                       type="button"
                       className="inline-flex items-center justify-center whitespace-nowrap 
@@ -403,25 +404,25 @@ const InsuranceClaim = ({ user, onBack }) => {
                 </div>
               </div>
             </div>
-            <div className='lg:col-span-1'>
+            <div className='xl:col-span-1 order-2 xl:order-2'>
               {/* Gemini response div */}
               <div className='rounded-lg border bg-white text-card-foreground shadow-sm warm-shadow 
-              border-agricultural-stone-gray/20 h-fit max-h-full min-h-[40%] overflow-y-auto'>
-                <div className='flex flex-col h-full justify-center space-y-1.5 p-6'>
-                  <h3 className='text-2xl font-semibold leading-none tracking-tight mb-6
+              border-agricultural-stone-gray/20 h-fit max-h-full min-h-[300px] sm:min-h-[400px] overflow-y-auto'>
+                <div className='flex flex-col h-full justify-center space-y-1.5 p-4 sm:p-6'>
+                  <h3 className='text-xl sm:text-2xl font-semibold leading-none tracking-tight mb-4 sm:mb-6
                   text-agricultural-soil-brown'>
                     Know your policy
                   </h3>
 
                   {geminiResponse !== '' ? (
-                  <div className='flex p-4 bg-agricultural-soft-sand rounded-lg'>
-                    <div className="text-agricultural-soil-brown text-sm leading-relaxed whitespace-pre-wrap">
+                  <div className='flex p-3 sm:p-4 bg-agricultural-soft-sand rounded-lg'>
+                    <div className="text-agricultural-soil-brown text-xs sm:text-sm leading-relaxed whitespace-pre-wrap">
                     <ReactMarkdown>{geminiResponse}</ReactMarkdown>
                     </div>
                   </div>)
                   :(
-                    <div className="flex items-center justify-center h-[250px]">
-                      <h1 className="text-gray-300 text-lg text-center">
+                    <div className="flex items-center justify-center h-[200px] sm:h-[250px]">
+                      <h1 className="text-gray-300 text-sm sm:text-lg text-center px-4">
                         Upload a text file and click "Analyze Policy with AI" to get a summary
                       </h1>
                     </div>
