@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   User,
   MapPin,
@@ -20,18 +20,18 @@ import YieldPredictionForm from "./YieldPredictionForm"; // Assuming this is alr
 import YieldResults from "./YieldResult";             // Assuming this is already non-ShadCN or will be converted
 import LoanApplication from "./loanApplication";
 import InsuranceClaim from "./insuranceClaim";
-import { useEffect } from 'react';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
 import { auth } from '../utils/firebaseConfig';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import PastReports from "./pastRecords";
 import KisaanSaathi from "./kisaanSaathi";
+import {Menu} from 'lucide-react';
 
 const FarmerDashboard = ({ user, onLogout }) => {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [yieldResults, setYieldResults] = useState(null);
   const [newsData, setNewsData] = useState([]);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const navigate = useNavigate();
   const [userData, setUserData] = useState({
     uid: '',
@@ -45,18 +45,22 @@ const FarmerDashboard = ({ user, onLogout }) => {
     phone: '',
     aadhar: '',
   });
+
+  const [isMobile, setIsMobile] = useState(false); // Start with false, will be set correctly in useEffect
   
   const [displayData, setDisplayData] = useState({
-    uid: '',
-    name: '',
-    email: '',
-    totalLand : 0,
-    crops: [],
-    locationLat: '',
-    locationLong: '',
-    isSmallFarmer : false,
-    phone: '',
-    aadhar: '',
+    user: {
+    uid: '' || 'd7m74KoesWRw9bdXceJboC7vbUu1',
+    name: '' || 'Souherdya Sarkar',
+    email: '' || 'souherdya@gmail.com',
+    totalLand : 0 || 10,
+    crops: [] || ['Wheat', 'Rice', 'Maize'],
+    locationLat: '' || 22.5726,
+    locationLong: '' || 88.3639,
+    isSmallFarmer : false || true,
+      phone: '' || '9876543210',
+      aadhar: '' || '123456789012',
+    }
   });
 
   // useEffect(()=>{
@@ -72,6 +76,22 @@ const FarmerDashboard = ({ user, onLogout }) => {
   //       console.error("Error details:", error.response?.data || error.message);
   //     });
   // },[]);
+  
+  useEffect(() => {
+    const handleResize = () => {
+      const mobile = window.innerWidth < 768;
+      console.log('Window width:', window.innerWidth, 'isMobile:', mobile);
+      setIsMobile(mobile);
+    };
+
+    // Set initial value
+    handleResize();
+    
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   
   const handleLogout = async () => {
     try {
@@ -110,9 +130,51 @@ const FarmerDashboard = ({ user, onLogout }) => {
           })
           .catch(error => {
             console.error('Error fetching farmer data:', error);
-            const dummy_data = JSON.parse(localStorage.getItem("mock_userData"));
-            setDisplayData(dummy_data);
-            console.log("DB fetch failed, setting mock data : ",dummy_data);
+            try {
+              const dummy_data = JSON.parse(localStorage.getItem("mock_userData"));
+              if (dummy_data) {
+                setDisplayData(dummy_data);
+                console.log("DB fetch failed, setting mock data from localStorage:", dummy_data);
+              } else {
+                // Fallback to hardcoded mock data if localStorage is empty
+                const fallbackData = {
+                  user: {
+                    uid: 'd7m74KoesWRw9bdXceJboC7vbUu1',
+                    name: 'Souherdya Sarkar',
+                    email: 'souherdya@gmail.com',
+                    totalLand: 5,
+                    crops: ['Wheat', 'Rice', 'Maize'],
+                    locationLat: 22.5726,
+                    locationLong: 88.3639,
+                    isSmallFarmer: true,
+                    phone: '9876543210',
+                    aadhar: '123456789012',
+                  }
+                };
+                setDisplayData(fallbackData);
+                console.log("DB fetch failed, setting hardcoded fallback data:", fallbackData);
+                localStorage.setItem("mock_userData", JSON.stringify(fallbackData));
+              }
+            } catch (localStorageError) {
+              console.error('Error parsing localStorage data:', localStorageError);
+              // Fallback to hardcoded mock data if localStorage parsing fails
+              const fallbackData = {
+                user: {
+                  uid: 'd7m74KoesWRw9bdXceJboC7vbUu1',
+                  name: 'Souherdya Sarkar',
+                  email: 'souherdya@gmail.com',
+                  totalLand: 5,
+                  crops: ['Wheat', 'Rice', 'Maize'],
+                  locationLat: 22.5726,
+                  locationLong: 88.3639,
+                  isSmallFarmer: true,
+                  phone: '9876543210',
+                  aadhar: '123456789012',
+                }
+              };
+              setDisplayData(fallbackData);
+              console.log("DB fetch failed, setting hardcoded fallback data after localStorage error:", fallbackData);
+            }
           });
         }
       });
@@ -120,6 +182,16 @@ const FarmerDashboard = ({ user, onLogout }) => {
       console.error('Error fetching farmer data:', error);
     }
   }, []);
+
+  // Debug useEffect to track displayData changes
+  useEffect(() => {
+    console.log("displayData state updated:", displayData);
+  }, [displayData]);
+
+  // Debug useEffect to track isMobile changes
+  useEffect(() => {
+    console.log("isMobile state changed to:", isMobile);
+  }, [isMobile]);
 
   // Mock data for farming feed
   const farmingNews = [
@@ -156,25 +228,39 @@ const FarmerDashboard = ({ user, onLogout }) => {
             <Leaf className="h-8 w-8 text-agricultural-forest-green" />
             <span className="text-xl font-bold text-agricultural-soil-brown">AgroSure</span>
           </div>
-          {/* Replaces Button component */}
-          <button
-            onClick={handleLogout}
-            className="inline-flex items-center justify-center whitespace-nowrap rounded-md 
-            text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none 
-            focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none 
-            disabled:opacity-50 border border-agricultural-stone-gray bg-white text-agricultural-soil-brown h-10 px-4 py-2 
-            hover:bg-agricultural-stone-gray/10"
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            Logout
-          </button>
+          <div className="flex items-center space-x-3">
+            {/* Hamburger Menu Button */}
+            <button
+              onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-md 
+              text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none 
+              focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none 
+              disabled:opacity-50 border border-agricultural-stone-gray bg-white text-agricultural-soil-brown h-10 px-4 py-2 
+              hover:bg-agricultural-soft-sand"
+            >
+              <Menu className="h-4 w-4" />
+            </button>
+            {/* Replaces Button component */}
+            <button
+              onClick={handleLogout}
+              className="inline-flex items-center justify-center whitespace-nowrap rounded-md 
+              text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none 
+              focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none 
+              disabled:opacity-50 border border-agricultural-stone-gray bg-white text-agricultural-soil-brown h-10 px-4 py-2 
+              hover:bg-agricultural-stone-gray/10"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Logout
+            </button>
+          </div>
         </div>
       </nav>
 
       <div className="flex h-[calc(100vh-73px)]">
         {/* Sidebar */}
-        <div className="w-80 bg-white border-r border-agricultural-stone-gray/20 p-6 overflow-y-auto">
-          {/* User Profile */}
+        <div className={`${sidebarCollapsed ? 'w-0' : 'w-80'} bg-white border-r border-agricultural-stone-gray/20 overflow-auto transition-all duration-300 ease-in-out`}>
+          <div className={`${sidebarCollapsed ? 'opacity-0' : 'opacity-100'} p-6 overflow-y-auto transition-opacity duration-300`}>
+            {/* User Profile */}
           <div className="text-center mb-8">
             {/* Replaces Avatar component */}
             <div className="relative flex h-20 w-20 shrink-0 overflow-hidden rounded-full mx-auto mb-4">
@@ -236,7 +322,9 @@ const FarmerDashboard = ({ user, onLogout }) => {
                   ? 'bg-agricultural-forest-green text-white hover:bg-agricultural-forest-green/90' // Default variant styling
                   : 'text-agricultural-soil-brown hover:bg-agricultural-soft-sand hover:text-agricultural-soil-brown' // Ghost variant styling
               }`}
-              onClick={() => setActiveSection('dashboard')}
+              onClick={() => {
+                setActiveSection('dashboard');
+              }}
             >
               <BarChart3 className="h-4 w-4 mr-3" />
               Dashboard
@@ -248,7 +336,13 @@ const FarmerDashboard = ({ user, onLogout }) => {
                   ? 'bg-agricultural-forest-green text-white hover:bg-agricultural-forest-green/90'
                   : 'text-agricultural-soil-brown hover:bg-agricultural-soft-sand hover:text-agricultural-soil-brown'
               }`}
-              onClick={() => setActiveSection('prediction')}
+              onClick={() => {
+                console.log('Prediction clicked - isMobile:', isMobile, 'sidebarCollapsed:', sidebarCollapsed);
+                if(isMobile){
+                  setSidebarCollapsed(true);
+                }
+                setActiveSection('prediction');
+              }}
             >
               <TrendingUp className="h-4 w-4 mr-3" />
               New Prediction
@@ -260,7 +354,13 @@ const FarmerDashboard = ({ user, onLogout }) => {
                   ? 'bg-agricultural-forest-green text-white hover:bg-agricultural-forest-green/90'
                   : 'text-agricultural-soil-brown hover:bg-agricultural-soft-sand hover:text-agricultural-soil-brown'
               }`}
-              onClick={() => setActiveSection('loan-application')}
+              onClick={() => {
+                console.log('Loan clicked - isMobile:', isMobile, 'sidebarCollapsed:', sidebarCollapsed);
+                if(isMobile){
+                  setSidebarCollapsed(true);
+                }
+                setActiveSection('loan-application');
+              }}
             >
               <CreditCard className="h-4 w-4 mr-3" />
               Loan Application
@@ -272,7 +372,13 @@ const FarmerDashboard = ({ user, onLogout }) => {
                   ? 'bg-agricultural-forest-green text-white hover:bg-agricultural-forest-green/90'
                   : 'text-agricultural-soil-brown hover:bg-agricultural-soft-sand hover:text-agricultural-soil-brown'
               }`}
-              onClick={() => setActiveSection('insurance-claim')}
+              onClick={() => {
+                console.log('Insurance clicked - isMobile:', isMobile, 'sidebarCollapsed:', sidebarCollapsed);
+                if(isMobile){
+                  setSidebarCollapsed(true);
+                }
+                setActiveSection('insurance-claim');
+              }}
             >
               <Shield className="h-4 w-4 mr-3" />
               Insurance Claim
@@ -285,7 +391,13 @@ const FarmerDashboard = ({ user, onLogout }) => {
                disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 w-full 
                justify-start text-agricultural-soil-brown hover:bg-agricultural-soft-sand 
                hover:text-agricultural-soil-brown"
-              onClick={() => setActiveSection('past-reports')}
+              onClick={() => {
+                console.log('Past reports clicked - isMobile:', isMobile, 'sidebarCollapsed:', sidebarCollapsed);
+                if(isMobile){
+                  setSidebarCollapsed(true);
+                }
+                setActiveSection('past-reports');
+              }}
             >
               <FileText className="h-4 w-4 mr-3" />
               Past Reports
@@ -298,11 +410,18 @@ const FarmerDashboard = ({ user, onLogout }) => {
                disabled:pointer-events-none disabled:opacity-50 h-10 px-4 py-2 w-full 
                justify-start text-agricultural-soil-brown hover:bg-agricultural-soft-sand 
                hover:text-agricultural-soil-brown"
-              onClick={() => setActiveSection('kisaan-saathi')}
+              onClick={() => {
+                console.log('Kisaan Saathi clicked - isMobile:', isMobile, 'sidebarCollapsed:', sidebarCollapsed);
+                if(isMobile){
+                  setSidebarCollapsed(true);
+                }
+                setActiveSection('kisaan-saathi');
+              }}
             >
               <MessageCircle className="h-4 w-4 mr-3" />
               Kisaan Saathi
             </button>
+          </div>
           </div>
         </div>
 
@@ -489,7 +608,7 @@ const FarmerDashboard = ({ user, onLogout }) => {
           )}
           {activeSection === 'kisaan-saathi' && (
             <KisaanSaathi 
-              onBack={() => setActiveSection('kisaan-saathi')}
+              onBack={() => setActiveSection('dashboard')}
             />
           )}
 
