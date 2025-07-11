@@ -44,7 +44,7 @@ const KisaanSaathi = ({ onBack }) => {
 
 const getresponse = async (inputValue) => {
     const query_text = await translateHindiToEnglish(inputValue);
-    const response = await fetch(`https://5pv9r5wz-6000.inc1.devtunnels.ms/query`, {
+    const response = await fetch(`https://baker-ordinary-bookmark-clicking.trycloudflare.com/query`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
