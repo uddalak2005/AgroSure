@@ -5,9 +5,9 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
-const MONGO_URL = process.env.MONGO_URL;
+const MONGO_URI = process.env.MONGO_URI;
 
-mongoose.connect(MONGO_URL)
+mongoose.connect(MONGO_URI)
 .then(() => {
     console.log("Connected to MongoDB");
 })
