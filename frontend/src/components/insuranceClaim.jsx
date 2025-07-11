@@ -14,7 +14,8 @@ const InsuranceClaim = ({ user, onBack }) => {
     policyNumber: '',
     policyDocument: null,
     damageImage: null,
-    cropImage: null
+    cropImage: null,
+    fieldImage : null
   });
 
   const [showAiResults, setShowAiResults] = useState(false);
@@ -45,6 +46,8 @@ const InsuranceClaim = ({ user, onBack }) => {
     predicted_crop_class: "sugarcane",
     status_crop_type: "success"
   });
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const speakText = (text, lang = 'hi-IN') => {
     if (!text || typeof window === 'undefined' || !window.speechSynthesis) {
@@ -90,6 +93,7 @@ const InsuranceClaim = ({ user, onBack }) => {
   
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsSubmitting(true);
     console.log("Form data updated:", formData);
     
     try {
@@ -110,6 +114,9 @@ const InsuranceClaim = ({ user, onBack }) => {
       }
       if (formData.cropImage) {
         formDataToSend.append('cropImage', formData.cropImage);
+      }
+      if (formData.fieldImage) {
+        formDataToSend.append('fieldImage', formData.fieldImage);
       }
       
       // Log FormData contents before sending
@@ -147,6 +154,8 @@ const InsuranceClaim = ({ user, onBack }) => {
     } catch (e) {
       console.error('Error submitting claim:', e);
       alert('Failed to submit claim. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -369,19 +378,47 @@ const InsuranceClaim = ({ user, onBack }) => {
                           </label>
                         </div>
                       </div>
+
+                      {/* Field Image Upload */}
+                      <div>
+                        {/* Replaces Label component */}
+                        <label htmlFor="fieldImage" className="text-agricultural-soil-brown text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 block">
+                          Field Image
+                        </label>
+                        <div className="mt-2 border-2 border-dashed border-agricultural-stone-gray/30 rounded-lg p-3 sm:p-4">
+                          <input
+                            id="fieldImage"
+                            type="file"
+                            accept=".jpg,.jpeg,.png"
+                            onChange={(e) => handleFileChange('fieldImage', e.target.files?.[0] || null)}
+                            className="hidden"
+                          />
+                          <label htmlFor="fieldImage" className="cursor-pointer flex items-center justify-center space-x-2 text-agricultural-stone-gray hover:text-agricultural-soil-brown text-center">
+                            <Upload className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
+                            <span className="text-xs sm:text-sm">{formData.fieldImage ? formData.fieldImage.name : 'Upload Field Image'}</span>
+                          </label>
+                        </div>
+                      </div>
                     </div>
 
                     {/* Replaces Button component */}
                     <div className='flex flex-col sm:flex-row justify-center gap-3 sm:gap-4'>
                     <button
-                      type="button"
+                      type="submit"
                       className="inline-flex items-center justify-center whitespace-nowrap 
                       rounded-md text-sm font-medium ring-offset-background transition-colors 
                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring 
                       focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 
                       w-full bg-agricultural-forest-green hover:bg-agricultural-crop-green text-white 
                       h-10 px-4 py-2"
+                      disabled={isSubmitting}
                     >
+                      {isSubmitting && (
+                        <svg className="animate-spin mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                        </svg>
+                      )}
                       Submit Insurance Claim
                     </button>
 
