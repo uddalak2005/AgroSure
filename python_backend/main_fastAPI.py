@@ -66,6 +66,22 @@ def download_file(public_id: str, save_path: str, file_type: str = 'image/jpeg')
     return False
 
 # --- FastAPI Routes ---
+@app.get("/")
+async def root():
+    return {
+        "message": "Agrosure API is running!", 
+        "status": "healthy",
+        "endpoints": {
+            "exif_metadata": "/api/exif_metadata",
+            "damage_detection": "/api/damage_detection", 
+            "crop_type": "/api/crop_type",
+            "crop_yield_prediction": "/predictForCrop",
+            "weather_prediction": "/futureWeatherPrediction"
+        },
+        "docs": "/docs",
+        "redoc": "/redoc"
+    }
+
 @app.post("/api/exif_metadata")
 async def exif_metadata(fieldImage: ImageRequest):
     filename = fieldImage.originalName or f"{fieldImage.publicId.split('/')[-1]}.jpg"
@@ -150,4 +166,12 @@ async def future_weather_prediction(data: WeatherPredictionRequest):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=5000)
+    print("Starting FastAPI server...")
+    print("Server will be available at:")
+    print("  - http://localhost:5000")
+    print("  - http://127.0.0.1:5000")
+    print("\nAPI Documentation will be available at:")
+    print("  - http://localhost:5000/docs (Swagger UI)")
+    print("  - http://localhost:5000/redoc (ReDoc)")
+    print("\nPress CTRL+C to stop the server")
+    uvicorn.run("main_fastAPI:app", host="127.0.0.1", port=5000, reload=True)
