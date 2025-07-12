@@ -1,6 +1,6 @@
 import { GoogleGenerativeAI } from '@google/generative-ai';
 
-const genAI = new GoogleGenerativeAI("AIzaSyCeynb813loy6F7AUHN9Ioe7t8o_miQ5wA"); // Vite env key
+const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY); // Vite env key
 
 export const summarizeTxtFile = async (file) => {
   const readTextFromFile = (file) => {

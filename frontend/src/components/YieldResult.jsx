@@ -4,6 +4,19 @@ import html2canvas from 'html2canvas';
 // import { toast } from "@/hooks/use-toast";
 
 const YieldResults = ({ results, user, onBackToDashboard }) => {
+
+
+  const cropPricesPerKgHowrah = {
+    rice: 42.0, // Average price in Howrah as of April 10, 2025. West Bengal average is 40.4 INR/kg as of July 10, 2025.
+    wheat: 27.3, // West Bengal average as of July 10, 2025. Durgapur market shows 26-27.35 INR/kg as of July 9-10, 2025.
+    sugarcane: 4.0, // India average price, local West Bengal data not specifically for Howrah.
+    maize: 16.0, // West Bengal average as of July 7, 2025. Some Kolkata listings show 19-30 INR/kg.
+    corn: 19.5, // Taking an average from Kolkata-based yellow corn/maize listings (14-30 INR/kg for various types). Distinguishing from "maize" as field corn.
+    cotton: 72.3, // India average for unginned cotton. Howrah specific raw cotton prices vary widely, from 67 INR/kg upwards.
+    millet: 60.0 // Average from various millet types listed in Kolkata, e.g., Foxtail Millet at 60 INR/kg. Prices for specific millet types can vary significantly (e.g., Barnyard around 85 INR/kg).
+  };
+  
+  console.log(cropPricesPerKgHowrah);
   // Transform API response to match component expectations
   const transformedResults = {
     crop: results.cropName || 'Unknown Crop',
@@ -28,14 +41,19 @@ const YieldResults = ({ results, user, onBackToDashboard }) => {
       `Consider crop rotation with suggested crops: ${results.suggestedCrops?.map(crop => crop.cropName).join(', ') || 'N/A'}`,
       `Expected harvest date: ${results.expectedHarvestDate || 'Not specified'}`
     ],
-    projectedRevenue: Math.round((results.predictedYieldKgPerAcre || 0) * (results.acresOfLand || 0) * 25), // Assuming ₹25/kg
-    marketPrice: 25000, // ₹25,000 per ton
+    projectedRevenue: marketPriceCalculator(results.cropName, results.predictedYieldKgPerAcre) || 25000*results.acresOfLand, // Assuming ₹25/kg
+    marketPrice: marketPriceCalculator(results.cropName, results.predictedYieldKgPerAcre) || 45.50, // ₹25,000 per ton
     riskIndex: Math.round(results.climateScore || 50),
     weatherIndex: Math.round(results.climateScore || 50),
     farmerId: results.uid || 'Unknown',
     location: results.location ? `${results.location.lat}, ${results.location.long}` : 'Location not set',
     generatedAt: new Date().toISOString()
   };
+
+
+  const marketPriceCalculator = (cropName, predictedYieldKgPerAcre) => {
+    return cropPricesPerKgHowrah[cropName.toLowerCase()]*predictedYieldKgPerAcre*results.acresOfLand;
+  }
 
   const handleDownloadReport = async () => {
     try {
@@ -76,7 +94,6 @@ const YieldResults = ({ results, user, onBackToDashboard }) => {
             <div>
               <p><strong>Confidence Score:</strong> ${transformedResults.confidenceScore}%</p>
               <p><strong>Projected Revenue:</strong> ₹${transformedResults.projectedRevenue.toLocaleString()}</p>
-              <p><strong>Farmer ID:</strong> ${transformedResults.farmerId}</p>
               <p><strong>Location:</strong> ${transformedResults.location}</p>
             </div>
           </div>
@@ -113,7 +130,7 @@ const YieldResults = ({ results, user, onBackToDashboard }) => {
             </div>
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; font-size: 14px;">
               <div><strong>Yield (tons):</strong> ${transformedResults.predictedYield.toFixed(1)}</div>
-              <div><strong>Market Price/ton:</strong> ₹${transformedResults.marketPrice.toLocaleString()}</div>
+              <div><strong>Market Price/kg:</strong> ₹${transformedResults.marketPrice.toLocaleString()}</div>
               <div><strong>Risk Index:</strong> ${transformedResults.riskIndex}/100</div>
               <div><strong>Weather Index:</strong> ${transformedResults.weatherIndex}/100</div>
             </div>
@@ -381,10 +398,6 @@ const YieldResults = ({ results, user, onBackToDashboard }) => {
           <div className="shadow p-6 border rounded">
             <h2 className="text-brown-700 font-semibold mb-4">Report Details</h2>
             <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-gray-600">Farmer ID:</span>
-                <span className="font-semibold text-brown-700">{transformedResults.farmerId}</span>
-              </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Location:</span>
                 <span className="font-semibold text-brown-700">{transformedResults.location}</span>
