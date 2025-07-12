@@ -1,0 +1,44 @@
+# Ignore Python cache & compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# Ignore virtual environments (NEVER copy local venvs into Docker)
+.venv/
+env/
+venv/
+
+# Ignore logs and junk
+*.log
+*.DS_Store
+
+# Ignore package lock files you don’t want (uv doesn't use requirements.txt)
+requirements.txt
+poetry.lock
+Pipfile
+Pipfile.lock
+
+# Ignore git and editor files
+.git/
+.gitignore
+.vscode/
+*.swp
+
+# Ignore environment config files (you’ll pass them in using --env-file)
+.env
+.env.*
+
+# Ignore big files or folders that don't need to go into the image
+node_modules/
+data/
+notebooks/
+uploads/
+tmp/
+tests/
+docs/
+
+# Optional: ignore anything not required for the final app
+*.md
+*.ipynb

@@ -44,7 +44,7 @@ const KisaanSaathi = ({ onBack }) => {
 
 const getresponse = async (inputValue) => {
     const query_text = await translateHindiToEnglish(inputValue);
-    const response = await fetch(`https://flame-refine-devon-cards.trycloudflare.com/query`, {
+    const response = await fetch(`${import.meta.env.KISAAN_SAATHI_URL}/query`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
