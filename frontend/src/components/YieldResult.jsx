@@ -5,7 +5,9 @@ import html2canvas from 'html2canvas';
 
 const YieldResults = ({ results, user, onBackToDashboard }) => {
 
-
+  const marketPriceCalculator = (cropName, predictedYieldKgPerAcre) => {
+    return cropPricesPerKgHowrah[cropName.toLowerCase()]*predictedYieldKgPerAcre*results.acresOfLand;
+  }
   const cropPricesPerKgHowrah = {
     rice: 42.0, // Average price in Howrah as of April 10, 2025. West Bengal average is 40.4 INR/kg as of July 10, 2025.
     wheat: 27.3, // West Bengal average as of July 10, 2025. Durgapur market shows 26-27.35 INR/kg as of July 9-10, 2025.
@@ -42,18 +44,13 @@ const YieldResults = ({ results, user, onBackToDashboard }) => {
       `Expected harvest date: ${results.expectedHarvestDate || 'Not specified'}`
     ],
     projectedRevenue: marketPriceCalculator(results.cropName, results.predictedYieldKgPerAcre) || 25000*results.acresOfLand, // Assuming ₹25/kg
-    marketPrice: marketPriceCalculator(results.cropName, results.predictedYieldKgPerAcre) || 45.50, // ₹25,000 per ton
+    marketPrice: cropPricesPerKgHowrah[results.cropName.toLowerCase()] || 45.50, // ₹25,000 per ton
     riskIndex: Math.round(results.climateScore || 50),
     weatherIndex: Math.round(results.climateScore || 50),
     farmerId: results.uid || 'Unknown',
     location: results.location ? `${results.location.lat}, ${results.location.long}` : 'Location not set',
     generatedAt: new Date().toISOString()
   };
-
-
-  const marketPriceCalculator = (cropName, predictedYieldKgPerAcre) => {
-    return cropPricesPerKgHowrah[cropName.toLowerCase()]*predictedYieldKgPerAcre*results.acresOfLand;
-  }
 
   const handleDownloadReport = async () => {
     try {
@@ -348,7 +345,7 @@ const YieldResults = ({ results, user, onBackToDashboard }) => {
                 <span className="font-semibold text-brown-700">{transformedResults.predictedYield.toFixed(1)}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-600">Market Price/ton:</span>
+                <span className="text-gray-600">Market Price/kg:</span>
                 <span className="font-semibold text-brown-700">₹{transformedResults.marketPrice.toLocaleString()}</span>
               </div>
               <div className="flex justify-between">

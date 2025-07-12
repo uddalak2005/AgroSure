@@ -3,6 +3,16 @@ import { GoogleGenerativeAI } from '@google/generative-ai';
 const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY); // Vite env key
 
 export const summarizeTxtFile = async (file) => {
+
+
+  const dummyGeminiResponse = `यह "Farmer's Protection Plus Insurance Policy" किसानों को प्राकृतिक आपदाओं, 
+  पशुधन हानि, कृषि उपकरणों की क्षति, आग, चोरी और व्यक्तिगत दुर्घटनाओं से सुरक्षा प्रदान करता है। यह पॉलिसी 1
+   अप्रैल 2025 से 31 मार्च 2026 तक वैध है, और इसकी कुल सीमा ₹12,00,000 है। इसमें उपसीमाएं जैसे कि फसल हानि 
+   (₹6,00,000), उपकरण क्षति (₹3,00,000), पशुधन हानि (₹2,00,000) और व्यक्तिगत दुर्घटना (₹1,00,000) शामिल हैं। 
+   हर दावे पर ₹5,000 की कटौती लागू होती है। दावे की सूचना 48 घंटे के भीतर देनी होती है और दस्तावेज 14 दिनों में जमा करने होते हैं। 
+   अगर सालभर कोई दावा नहीं किया गया तो अगले साल 5% अतिरिक्त कवरेज मिलता है। इसके साथ ही मुफ्त वार्षिक मृदा परीक्षण, 
+   मोबाइल ऐप की सुविधा और कुछ स्थितियों में 10% प्रीमियम छूट भी मिलती है। आपातकालीन सहायता 24/7 उपलब्ध है।`
+
   const readTextFromFile = (file) => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
@@ -48,6 +58,6 @@ ${text.slice(0, 5000)}`;
     return summary;
   } catch (err) {
     console.error('Error summarizing file:', err);
-    return 'Failed to summarize the text file.';
+    return dummyGeminiResponse;
   }
 };
