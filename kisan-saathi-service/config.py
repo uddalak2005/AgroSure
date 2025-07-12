@@ -7,6 +7,6 @@ load_dotenv()
 MODEL_NAME = os.getenv("RAG_MODEL_NAME", "all-MiniLM-L6-v2")
 GEN_MODEL_NAME = os.getenv("GEN_MODEL_NAME", "mrSoul7766/AgriQBot")
 FALLBACK_MODEL = "t5-small"
-PORT = int(os.getenv("PORT", 5000))
+PORT = int(os.getenv("PORT", 5000))  # Force to 5000 if needed: PORT = 5000
 
 print(torch.cuda.is_available())

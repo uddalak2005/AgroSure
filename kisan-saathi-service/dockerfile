@@ -24,7 +24,7 @@ COPY . .
 RUN uv venv && uv sync
 
 # Expose the port (change if needed)
-EXPOSE 5000
+EXPOSE 5001
 
 # Run the app using uv (replace with uvicorn if using FastAPI)
 CMD ["uv", "run", "app.py"]

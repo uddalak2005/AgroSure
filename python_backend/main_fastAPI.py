@@ -169,10 +169,6 @@ if __name__ == "__main__":
     import uvicorn
     print("Starting FastAPI server...")
     print("Server will be available at:")
-    print("  - http://localhost:5000")
-    print("  - http://127.0.0.1:5000")
-    print("\nAPI Documentation will be available at:")
-    print("  - http://localhost:5000/docs (Swagger UI)")
-    print("  - http://localhost:5000/redoc (ReDoc)")
+    print("  - http://localhost:5001")
     print("\nPress CTRL+C to stop the server")
-    uvicorn.run("main_fastAPI:app", host="127.0.0.1", port=5000, reload=True)
+    uvicorn.run("main_fastAPI:app", host="127.0.0.1", port=5001, reload=True)
