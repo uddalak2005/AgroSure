@@ -18,6 +18,9 @@ const InsuranceClaim = ({ user, onBack }) => {
     fieldImage : null
   });
 
+ 
+
+
   const [showAiResults, setShowAiResults] = useState(false);
   const [isLoadingAi, setIsLoadingAi] = useState(false);
   const [geminiResponse, setGeminiResponse] = useState('');
