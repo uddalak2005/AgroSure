@@ -6,6 +6,8 @@ python_backend/.venv
 python_backend/__pycache__
 python_backend/config.py
 python_backend/models
-RAG/pytorch_model.bin
-RAG/tokenizer_config.json
-RAG/spice.model
+kisan-saathi-service/pytorch_model.bin
+kisan-saathi-service/tokenizer_config.json
+kisan-saathi-service/spice.model
+kisan-saathi-service/venv
+kisan-saathi-service/.env
