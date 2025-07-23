@@ -3,6 +3,7 @@ import userRoutes from "./routes/user.route.js"
 import cropRoutes from "./routes/crop.route.js";
 import loanRoutes from "./routes/loan.route.js";
 import insuranceRoutes from "./routes/insurance.route.js";
+import ivrRoutes from "./routes/ivr.route.js";
 import cors from "cors";
 
 const app = express();
@@ -21,6 +22,7 @@ app.use("/user", userRoutes);
 app.use("/crop", cropRoutes);
 app.use("/loan", loanRoutes);
 app.use("/insurance", insuranceRoutes);
+app.use("/ivr", ivrRoutes);
 
 app.get("/", (req, res) => {
     res.send("AgriSure Backend");
