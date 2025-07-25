@@ -9,4 +9,8 @@ router.post("/intro", IvrController.outGoingIVR);
 
 router.post("/language", IvrController.languageSelection);
 
+router.post("/saveName", IvrController.saveName);
+
+router.post("/savePincode", IvrController.savePinCode);
+
 export default router;
