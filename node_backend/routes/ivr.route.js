@@ -13,4 +13,8 @@ router.post("/saveName", IvrController.saveName);
 
 router.post("/savePincode", IvrController.savePinCode);
 
+router.post("/saveCropSelection", IvrController.saveCropSelection);
+
+router.post("/saveLandArea", IvrController.saveLandArea);
+
 export default router;
