@@ -19,7 +19,6 @@ const userModel = new mongoose.Schema({
     },
     aadhar : {
         type : Number,
-        required : true
     },
     createdAt: { type: Date, default: Date.now },
 });

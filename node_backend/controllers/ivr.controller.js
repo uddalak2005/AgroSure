@@ -9,8 +9,13 @@ import fs from "fs";
 import axios from "axios";
 import FormData from "form-data";
 import path from 'path';
+import { fileURLToPath } from 'url';
+import cropDTMFHelper from '../utils/cropDTMFHelper.util.js';
 
-const {twiml} = twilio;
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+const { twiml } = twilio;
 
 class IvrController {
 
@@ -20,12 +25,48 @@ class IvrController {
         this.twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
         this.client = twilio(this.accountSid, this.authToken);
         this.makeCall = this.makeCall.bind(this);
+        this.generateCropDTMFInstructions = this.generateCropDTMFInstructions.bind(this);
+        this.playAudioSequence = this.playAudioSequence.bind(this);
+        this.outGoingIVR = this.outGoingIVR.bind(this);
+        this.languageSelection = this.languageSelection.bind(this);
+        this.saveName = this.saveName.bind(this);
+        this.savePinCode = this.savePinCode.bind(this);
+        this.saveCropSelection = this.saveCropSelection.bind(this);
+        this.saveLandArea = this.saveLandArea.bind(this);
     }
+
+
+    generateCropDTMFInstructions(cropList, language) {
+        console.log("=== Generating Crop DTMF Instructions ===");
+        console.log("Crop List:", cropList);
+        console.log("Language:", language);
+        
+        // Validate crop list first
+        const validation = cropDTMFHelper.validateCropAudioFiles(cropList, language);
+
+        if (!validation.isValid) {
+            console.warn(`Missing audio files for crops: ${validation.missing.join(', ')}`);
+        }
+
+        // Generate audio sequence using helper
+        const audioFiles = cropDTMFHelper.generateAudioSequence(cropList, language);
+        console.log("Total audio files generated:", audioFiles.length);
+        console.log("Audio files:", audioFiles);
+        
+        return audioFiles;
+    }
+
+    playAudioSequence(audioFiles, twimlResponse) {
+        audioFiles.forEach(audioFile => {
+            twimlResponse.play(audioFile);
+        });
+    }
+
 
     async makeCall(req, res) {
         console.log("making call");
         try {
-            const {phone} = req.body;
+            const { phone } = req.body;
 
             const call = await this.client.calls.create({
                 from: this.twilioPhoneNumber,
@@ -113,7 +154,7 @@ class IvrController {
             // Only update language if a valid digit was provided
             if (digit && langMap[digit]) {
                 const lang = langMap[digit];
-                updateSession(callSid, {lang});
+                updateSession(callSid, { lang });
 
                 twimlResponse.play(`${process.env.BASE_URL}/audio/${lang}/2_prompt_name_after_beep.wav`)
 
@@ -146,12 +187,12 @@ class IvrController {
         }
     }
 
-    //Save name and the pin-code
+    //Save name
     async saveName(req, res) {
 
         console.log("saveName");
 
-        const twimlResponse = new VoiceResponse();
+        const twimlResponse = new twiml.VoiceResponse();
 
         try {
             const callSid = req.body.CallSid;
@@ -251,7 +292,7 @@ class IvrController {
 
 
             //Storing the name in memory map
-            updateSession(callSid, {name: transcribedText});
+            updateSession(callSid, { name: transcribedText });
             console.log(getSession(callSid));
 
             console.log("Moving to Pincode")
@@ -261,7 +302,7 @@ class IvrController {
                 numDigits: 6,
                 action: `${process.env.BASE_URL}/ivr/savePincode`,
                 method: 'POST',
-                timeout: 5
+                timeout: 10
             });
 
             //To play the audio instruction to enter pincode
@@ -285,20 +326,91 @@ class IvrController {
         try {
             const callSid = req.body.CallSid;
             const pincode = req.body.Digits;
+            const session = getSession(callSid);
+            const lang = session?.lang;
 
             console.log("pincode", pincode);
+            console.log("pincode length", pincode?.length);
+            console.log("language", lang);
 
-            updateSession(callSid, {pincode});
+            // Validate pincode length
+            if (!pincode || pincode.length !== 6) {
+                console.log(`Invalid pincode length: ${pincode?.length}. Expected 6 digits.`);
+                
+                const gather = twimlResponse.gather({
+                    input: 'dtmf',
+                    numDigits: 6,
+                    action: `${process.env.BASE_URL}/ivr/savePincode`,
+                    method: 'POST',
+                    timeout: 10
+                });
 
-            const session = getSession(callSid);
+                gather.play(`${process.env.BASE_URL}/audio/${lang}/3_enter_pincode.wav`);
+                
+                // Fallback if no input
+                twimlResponse.say("We did not receive your pincode");
+                twimlResponse.redirect(`${process.env.BASE_URL}/ivr/intro`);
+                
+                return res.type('text/xml').send(twimlResponse.toString());
+            }
 
-            const apiId = process.env.OPENWEATHER_API_KEY;
-
-            const locationData = await axios.get(`http://api.openweathermap.org/geo/1.0/zip?zip=${pincode},IN&appid=${apidId}`)
+            // Store valid pincode
+            updateSession(callSid, { pincode });
 
             twimlResponse.play(`${process.env.BASE_URL}/audio/${lang}/4_music_or_waiting.wav`);
 
-            twimlResponse.say("Thank you for your information. We will process your request.");
+            const apiId = process.env.OPENWEATHER_API_KEY;
+
+            const locationData = await axios.get(`http://api.openweathermap.org/geo/1.0/zip?zip=${pincode},IN&appid=${apiId}`)
+
+            if (!locationData) {
+                twimlResponse.say("Sorry! Unable to fetch location data");
+                twimlResponse.hangup();
+                return res.status(400).json("We are facing trouble with location data");
+            }
+
+            console.log(locationData.data.lat);
+            console.log(locationData.data.lon);
+
+            const cropList = await cropDTMFHelper.getAvailableCrops(
+                locationData.data.lat,
+                locationData.data.lon,
+                pincode
+            );
+
+            console.log("Available crops for location:", cropList);
+
+            twimlResponse.play(`${process.env.BASE_URL}/audio/${lang}/5_choose_crop.wav`);
+
+            const audioFiles = this.generateCropDTMFInstructions(cropList, lang);
+
+            // Set up gather for crop selection FIRST
+            const gather = twimlResponse.gather({
+                input: 'dtmf',
+                numDigits: 1,
+                action: `${process.env.BASE_URL}/ivr/saveCropSelection`,
+                method: 'POST',
+                timeout: 10
+            });
+
+            // Play audio files within the gather
+            if (audioFiles.length > 0) {
+                console.log("About to play audio files in gather:");
+                audioFiles.forEach((audioFile, index) => {
+                    console.log(`${index + 1}. ${audioFile}`);
+                    gather.play(audioFile);
+                });
+            } else {
+                console.error("No audio files generated for crop instructions");
+                gather.say("Sorry, unable to load crop options");
+            }
+
+            // Fallback if no input received
+            twimlResponse.say("We did not receive your selection");
+            twimlResponse.redirect(`${process.env.BASE_URL}/ivr/intro`);
+
+            // Store crop list in session for later use
+            updateSession(callSid, { cropList });
 
             return res.type('text/xml').send(twimlResponse.toString());
 
@@ -310,6 +422,107 @@ class IvrController {
             })
         }
     }
+
+    // Handle crop selection
+    async saveCropSelection(req, res) {
+        console.log("saveCropSelection");
+        const twimlResponse = new twiml.VoiceResponse();
+
+        try {
+            const callSid = req.body.CallSid;
+            const selectedDigit = req.body.Digits;
+            const session = getSession(callSid);
+            const cropList = session?.cropList;
+            const lang = session?.lang;
+
+            console.log("Selected digit:", selectedDigit);
+            console.log("Available crops:", cropList);
+
+            if (!selectedDigit || !cropList) {
+                twimlResponse.say("Invalid selection");
+                twimlResponse.redirect(`${process.env.BASE_URL}/ivr/intro`);
+                return res.type('text/xml').send(twimlResponse.toString());
+            }
+
+            const selectedCrop = cropDTMFHelper.getCropByIndex(cropList, parseInt(selectedDigit));
+
+            if (!selectedCrop) {
+                twimlResponse.say("Invalid crop selection");
+                twimlResponse.redirect(`${process.env.BASE_URL}/ivr/intro`);
+                return res.type('text/xml').send(twimlResponse.toString());
+            }
+
+            // Store selected crop
+            updateSession(callSid, { selectedCrop: selectedCrop.name });
+
+            console.log("Selected crop:", selectedCrop.name);
+
+            // Play land area instruction
+            twimlResponse.play(`${process.env.BASE_URL}/audio/${lang}/6_enter_land_area.wav`);
+
+            // Set up gather for land area input
+            const gather = twimlResponse.gather({
+                input: 'dtmf',
+                numDigits: 3, // Assuming max 999 acres
+                action: `${process.env.BASE_URL}/ivr/saveLandArea`,
+                method: 'POST',
+                timeout: 10
+            });
+
+            return res.type('text/xml').send(twimlResponse.toString());
+
+        } catch (err) {
+            console.log(err.message);
+            twimlResponse.say("Sorry an application error has occurred");
+            return res.status(500).json({
+                message: err.message
+            })
+        }
+    }
+
+    // Handle land area input
+    async saveLandArea(req, res) {
+        console.log("saveLandArea");
+        const twimlResponse = new twiml.VoiceResponse();
+
+        try {
+            const callSid = req.body.CallSid;
+            const landArea = req.body.Digits;
+            const session = getSession(callSid);
+            const lang = session?.lang;
+
+            console.log("Land area:", landArea);
+
+            if (!landArea) {
+                twimlResponse.say("Invalid land area");
+                twimlResponse.redirect(`${process.env.BASE_URL}/ivr/intro`);
+                return res.type('text/xml').send(twimlResponse.toString());
+            }
+
+            // Store land area
+            updateSession(callSid, { landArea });
+
+            // Play processing done message
+            twimlResponse.play(`${process.env.BASE_URL}/audio/${lang}/7_processing_done.wav`);
+
+            // Here you can add logic to save the complete data to database
+            console.log("Complete session data:", getSession(callSid));
+
+            // Clear session after processing
+            clearSession(callSid);
+
+            return res.type('text/xml').send(twimlResponse.toString());
+
+        } catch (err) {
+            console.log(err.message);
+            twimlResponse.say("Sorry an application error has occurred");
+            return res.status(500).json({
+                message: err.message
+            })
+        }
+    }
+
+
 }
 
 export default new IvrController();
