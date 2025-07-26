@@ -4,6 +4,7 @@ import cropRoutes from "./routes/crop.route.js";
 import loanRoutes from "./routes/loan.route.js";
 import insuranceRoutes from "./routes/insurance.route.js";
 import ivrRoutes from "./routes/ivr.route.js";
+import kioskRoutes from "./routes/kiosk.route.js";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath} from "url";
@@ -30,6 +31,7 @@ app.use("/crop", cropRoutes);
 app.use("/loan", loanRoutes);
 app.use("/insurance", insuranceRoutes);
 app.use("/ivr", ivrRoutes);
+app.use("/kiosk", kioskRoutes);
 
 app.get("/", (req, res) => {
     res.send("AgriSure Backend");

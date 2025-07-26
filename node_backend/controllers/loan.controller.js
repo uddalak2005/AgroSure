@@ -1,8 +1,8 @@
-import crop from "../models/crop.schema.js";
-import user from "../models/user.schema.js";
-import loan from "../models/loan.schema.js";
+import crop from "../models/crop.model.js";
+import user from "../models/user.model.js";
+import loan from "../models/loan.model.js";
 import sendNotification from "../services/sendNotification.service.js"
-import Bank from "../models/bank.schema.js";
+import Bank from "../models/bank.model.js";
 
 class LoanController {
     async submitLoan(req, res) {

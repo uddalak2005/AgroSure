@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const cropSchema = new mongoose.Schema({
+const cropModel = new mongoose.Schema({
     uid: {
         type: String,
         ref: 'user'
@@ -33,5 +33,5 @@ const cropSchema = new mongoose.Schema({
     }]
 })
 
-const Crop = mongoose.model('Crop', cropSchema);
+const Crop = mongoose.model('Crop', cropModel);
 export default Crop;
