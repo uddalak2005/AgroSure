@@ -1,6 +1,6 @@
-import User from "../models/user.schema.js";
-import Crop from "../models/crop.schema.js";
-import Loan from "../models/loan.schema.js";
+import User from "../models/user.model.js";
+import Crop from "../models/crop.model.js";
+import Loan from "../models/loan.model.js";
 import getAIInsights from "../services/getAIInsights.service.js";
 
 

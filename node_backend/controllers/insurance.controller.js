@@ -3,7 +3,7 @@ import handleMultipleUploads from "../utils/handleFileUpload.util.js";
 import sendNotification from "../services/sendNotification.service.js";
 import InsuranceCompany from "../models/insuranceCompanies.model.js";
 import getAIInsights from "../services/getAIInsights.service.js";
-import User from "../models/user.schema.js";
+import User from "../models/user.model.js";
 
 class InsuranceController {
     async createInsurance(req, res) {

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const loanSchema = new mongoose.Schema({
+const loanModel = new mongoose.Schema({
     uid: {
         type: String,
         ref: 'user',
@@ -45,7 +45,7 @@ const loanSchema = new mongoose.Schema({
 
 });
 
-loanSchema.virtual('utilizationPercentage').get(function () {
+loanModel.virtual('utilizationPercentage').get(function () {
     if (this.requestedAmount && this.approvedAmount) {
         return (this.approvedAmount / this.requestedAmount) * 100;
     }
@@ -53,5 +53,5 @@ loanSchema.virtual('utilizationPercentage').get(function () {
 });
 
 
-const Loan = mongoose.model('Loan', loanSchema);
+const Loan = mongoose.model('Loan', loanModel);
 export default Loan;

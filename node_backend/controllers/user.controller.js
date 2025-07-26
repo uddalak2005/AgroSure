@@ -1,4 +1,4 @@
-import User from "../models/user.schema.js";
+import User from "../models/user.model.js";
 
 class RegistrationController {
 
@@ -38,7 +38,10 @@ class RegistrationController {
                 crops
             });
 
-            res.status(201).json({ message: "User registered successfully!" });
+            res.status(201).json({
+                message: "User registered successfully!" ,
+                newUser
+            });
         }
         catch (err) {
             console.log(err.message);

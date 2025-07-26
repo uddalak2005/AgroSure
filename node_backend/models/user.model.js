@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const userSchema = new mongoose.Schema({
+const userModel = new mongoose.Schema({
     uid: {
         type: String,
         unique: true
@@ -24,5 +24,5 @@ const userSchema = new mongoose.Schema({
     createdAt: { type: Date, default: Date.now },
 });
 
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model('User', userModel);
 export default User;

@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const bankSchema = new mongoose.Schema({
+const bankModel = new mongoose.Schema({
   name: { type: String, required: true },
   branchCode: { type: String, required: true, unique: true },
   email: { type: String, required: true, lowercase: true },
@@ -20,7 +20,7 @@ const bankSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-bankSchema.index({ location: "2dsphere" });
+bankModel.index({ location: "2dsphere" });
 
-const Bank = mongoose.model("Bank", bankSchema);
+const Bank = mongoose.model("Bank", bankModel);
 export default Bank;
