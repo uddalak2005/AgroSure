@@ -6,6 +6,104 @@
   <component name="ChangeListManager">
     <list default="true" id="b86f6e4d-0b88-4932-904a-fd061fa535e6" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/../.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/../.gitignore" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/controllers/ivr.controller.js" beforeDir="false" afterPath="$PROJECT_DIR$/controllers/ivr.controller.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/bn-IN/crop_names/অন্যান্য ডাল_MINOR PULSES.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/bn-IN/crop_names/আখ_SUGARCANE.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/bn-IN/crop_names/এরন্ডি_CASTOR.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/bn-IN/crop_names/কুসুম_SAFFLOWER.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/bn-IN/crop_names/গম_WHEAT.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/bn-IN/crop_names/চিনাবাদাম_GROUNDNUT.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/bn-IN/crop_names/ছোলা_CHICKPEA.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/bn-IN/crop_names/জোয়ার (খরিফ)_KHARIF SORGHUM.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/bn-IN/crop_names/জোয়ার (রবি)_RABI SORGHUM.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/bn-IN/crop_names/জোয়ার_SORGHUM.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/bn-IN/crop_names/তিল_SESAMUM.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/bn-IN/crop_names/তিসি_LINSEED.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/bn-IN/crop_names/তুর ডাল_PIGEONPEA.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/bn-IN/crop_names/তেলবীজ_OILSEEDS.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/bn-IN/crop_names/ধান_RICE.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/bn-IN/crop_names/পাট তুলা_COTTON.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/bn-IN/crop_names/বাজরা_PEARL MILLET.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/bn-IN/crop_names/ভুট্টা_MAIZE.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/bn-IN/crop_names/যব_BARLEY.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/bn-IN/crop_names/রাগি_FINGER MILLET.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/bn-IN/crop_names/সয়াবিন_SOYABEAN.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/bn-IN/crop_names/সরিষা ও রেপসিড_RAPESEED AND MUSTARD.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/bn-IN/crop_names/সূর্যমুখী_SUNFLOWER.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/en-IN/crop_names/Barley_BARLEY.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/en-IN/crop_names/Castor_CASTOR.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/en-IN/crop_names/Chickpea_CHICKPEA.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/en-IN/crop_names/Cotton_COTTON.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/en-IN/crop_names/Finger Millet_FINGER MILLET.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/en-IN/crop_names/Groundnut_GROUNDNUT.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/en-IN/crop_names/Kharif Sorghum_KHARIF SORGHUM.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/en-IN/crop_names/Linseed_LINSEED.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/en-IN/crop_names/Maize_MAIZE.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/en-IN/crop_names/Minor Pulses_MINOR PULSES.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/en-IN/crop_names/Oilseeds_OILSEEDS.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/en-IN/crop_names/Pearl Millet_PEARL MILLET.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/en-IN/crop_names/Pigeonpea_PIGEONPEA.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/en-IN/crop_names/Rabi Sorghum_RABI SORGHUM.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/en-IN/crop_names/Rapeseed and Mustard_RAPESEED AND MUSTARD.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/en-IN/crop_names/Rice_RICE.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/en-IN/crop_names/Safflower_SAFFLOWER.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/en-IN/crop_names/Sesamum_SESAMUM.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/en-IN/crop_names/Sorghum_SORGHUM.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/en-IN/crop_names/Soyabean_SOYABEAN.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/en-IN/crop_names/Sugarcane_SUGARCANE.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/en-IN/crop_names/Sunflower_SUNFLOWER.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/en-IN/crop_names/Wheat_WHEAT.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/hi-IN/1_welcome_and_lang_select.wav" beforeDir="false" afterPath="$PROJECT_DIR$/public/audio/hi-IN/1_welcome_and_lang_select.wav" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/hi-IN/crop_names/अन्य दलहन_MINOR PULSES.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/hi-IN/crop_names/अरहर (तूर)_PIGEONPEA.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/hi-IN/crop_names/अलसी_LINSEED.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/hi-IN/crop_names/एरंडी_CASTOR.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/hi-IN/crop_names/कपास_COTTON.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/hi-IN/crop_names/कुसुम_SAFFLOWER.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/hi-IN/crop_names/गन्ना_SUGARCANE.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/hi-IN/crop_names/गेंहू_WHEAT.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/hi-IN/crop_names/चना_CHICKPEA.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/hi-IN/crop_names/जौ_BARLEY.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/hi-IN/crop_names/ज्वार (खरीफ)_KHARIF SORGHUM.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/hi-IN/crop_names/ज्वार (रबी)_RABI SORGHUM.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/hi-IN/crop_names/ज्वार_SORGHUM.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/hi-IN/crop_names/तिल_SESAMUM.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/hi-IN/crop_names/तिलहन_OILSEEDS.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/hi-IN/crop_names/धान_RICE.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/hi-IN/crop_names/बाजरा_PEARL MILLET.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/hi-IN/crop_names/मक्का_MAIZE.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/hi-IN/crop_names/मूंगफली_GROUNDNUT.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/hi-IN/crop_names/रागी_FINGER MILLET.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/hi-IN/crop_names/सरसों और रेपसीड_RAPESEED AND MUSTARD.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/hi-IN/crop_names/सूरजमुखी_SUNFLOWER.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/hi-IN/crop_names/सोयाबीन_SOYABEAN.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/te-IN/crop_names/ఆముదం_CASTOR.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/te-IN/crop_names/ఆవాల మరియు నువ్వులు_RAPESEED AND MUSTARD.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/te-IN/crop_names/ఆవిశెషము_LINSEED.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/te-IN/crop_names/ఇతర పప్పులు_MINOR PULSES.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/te-IN/crop_names/కందులు_PIGEONPEA.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/te-IN/crop_names/కుసుమ_SAFFLOWER.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/te-IN/crop_names/గోధుమలు_WHEAT.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/te-IN/crop_names/చెరకు_SUGARCANE.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/te-IN/crop_names/జొన్న (ఖరీఫ్)_KHARIF SORGHUM.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/te-IN/crop_names/జొన్న (రబీ)_RABI SORGHUM.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/te-IN/crop_names/జొన్న_SORGHUM.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/te-IN/crop_names/నువ్వులు_SESAMUM.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/te-IN/crop_names/నూనెగింజలు_OILSEEDS.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/te-IN/crop_names/పత్తి_COTTON.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/te-IN/crop_names/బియ్యం_RICE.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/te-IN/crop_names/మొక్కజొన్న_MAIZE.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/te-IN/crop_names/యవ_BARLEY.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/te-IN/crop_names/రాగులు_FINGER MILLET.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/te-IN/crop_names/వెరుసెనుకాయలు_GROUNDNUT.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/te-IN/crop_names/సజ్జలు_PEARL MILLET.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/te-IN/crop_names/సూర్యకాంతి పువ్వు_SUNFLOWER.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/te-IN/crop_names/సెనగలు_CHICKPEA.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/audio/te-IN/crop_names/సోయాবీన్లు_SOYABEAN.wav" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/routes/ivr.route.js" beforeDir="false" afterPath="$PROJECT_DIR$/routes/ivr.route.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/downloadTTS.util.js" beforeDir="false" afterPath="$PROJECT_DIR$/utils/downloadTTS.util.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/prompts.json" beforeDir="false" afterPath="$PROJECT_DIR$/utils/prompts.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -30,30 +128,30 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "Node.js.app.js.executor": "Debug",
-    "Node.js.ivr.route.js.executor": "Debug",
-    "Node.js.server.js.executor": "Debug",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "git-widget-placeholder": "backend/ivr-calling",
-    "ignore.virus.scanning.warn.message": "true",
-    "javascript.nodejs.core.library.configured.version": "22.16.0",
-    "javascript.nodejs.core.library.typings.version": "22.16.5",
-    "last_opened_file_path": "C:/Users/Uddal/Documents/Web Development Projects/AgroSure/node_backend",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "settings.editor.selected.configurable": "MTHome",
-    "ts.external.directory.path": "C:\\Program Files\\JetBrains\\WebStorm 2025.1.2\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;Node.js.app.js.executor&quot;: &quot;Debug&quot;,
+    &quot;Node.js.ivr.route.js.executor&quot;: &quot;Debug&quot;,
+    &quot;Node.js.server.js.executor&quot;: &quot;Debug&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;backend/ivr-calling&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;javascript.nodejs.core.library.configured.version&quot;: &quot;22.16.0&quot;,
+    &quot;javascript.nodejs.core.library.typings.version&quot;: &quot;22.16.5&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Uddal/Documents/Web Development Projects/AgroSure/node_backend&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;C:\\Program Files\\JetBrains\\WebStorm 2025.1.2\\plugins\\javascript-plugin\\jsLanguageServicesImpl\\external&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
@@ -75,6 +173,8 @@
       <workItem from="1753436627521" duration="849000" />
       <workItem from="1753438340804" duration="2577000" />
       <workItem from="1753461178127" duration="16741000" />
+      <workItem from="1753515787458" duration="25295000" />
+      <workItem from="1753630307032" duration="13881000" />
     </task>
     <servers />
   </component>
