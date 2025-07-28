@@ -1,4 +1,3 @@
-from flask import Flask, request, jsonify
 import os
 from PIL import Image
 import piexif
@@ -51,8 +50,8 @@ def get_exif_data(image_path):
         if lat and lon:
             try:
                 geolocator = Nominatim(user_agent="agrisure_exif_reader")
-                location = geolocator.reverse((lat, lon), timeout=10)
-                address = location.address if location else None
+                location = geolocator.reverse((lat, lon))
+                address = location.address if location else None  # type: ignore
             except:
                 address = "Geocoder error"
 
@@ -122,7 +121,7 @@ def predict_damage(image_path):
         with torch.no_grad():
             output = model_damage(input_tensor)
             probs = torch.softmax(output, dim=1)
-            predicted_class = torch.argmax(probs, dim=1).item()
+            predicted_class = int(torch.argmax(probs, dim=1).item())
             confidence = float(probs[0][predicted_class].item())
         predicted_label = class_names[predicted_class]
         return {
@@ -180,12 +179,22 @@ def predict_crop(image_path):
 def get_district_from_coordinates(lat, lon):
     geolocator = Nominatim(user_agent="agrisure-ai")
     try:
-        location = geolocator.reverse((lat, lon), language="en", timeout=10)
+        location = geolocator.reverse((lat, lon))
     except GeocoderTimedOut:
         return None, None, "Reverse geocoding service timed out."
-    if not location or 'address' not in location.raw:
+    except Exception as e:
+        return None, None, f"Geocoding error: {str(e)}"
+    
+    if not location:
         return None, None, "Could not get district from coordinates."
-    address = location.raw['address']
+    
+    try:
+        address = location.raw.get('address', {})  # type: ignore
+    except (AttributeError, TypeError):
+        return None, None, "Could not parse location data."
+    
+    if not address:
+        return None, None, "Could not get district from coordinates."
     district = (
         address.get('district') or
         address.get('state_district') or
@@ -234,13 +243,13 @@ def calculate_dynamic_climate_score(predicted_yield, soil_score, max_yield=8000,
     return round((0.6 * norm_yield + 0.4 * norm_soil) * 100, 2)
 
 def forecast_yield(ts_data):
-    model = Prophet(yearly_seasonality=True, growth='flat')
+    model = Prophet(yearly_seasonality='auto', growth='flat')
     model.fit(ts_data)
     forecast = model.predict(model.make_future_dataframe(periods=1, freq='YS'))
     return max(forecast.iloc[-1]['yhat'], 0)
 
 def forecast_yield_with_accuracy(ts_data):
-    model = Prophet(yearly_seasonality=True, growth='flat')
+    model = Prophet(yearly_seasonality='auto', growth='flat')
     model.fit(ts_data)
     future = model.make_future_dataframe(periods=1, freq='YS')
     forecast = model.predict(future)
@@ -268,24 +277,33 @@ def get_crop_priority_list(district_yield, base_crop_names):
     return sorted(priority_list, key=lambda x: x[1], reverse=True)
 
 def get_weather_data(lat, lon):
-    import config
-    url = f"https://api.weatherapi.com/v1/current.json?key={config.OPENWEATHER_API}&q={lat},{lon}"
     try:
-        response = requests.get(url)
-        data = response.json()
-        return {
-            "temp_c": data['current']['temp_c'],
-            "humidity": data['current']['humidity'],
-            "condition": data['current']['condition']['text'],
-            "wind_kph": data['current']['wind_kph']
-        }
+        import config
+        # Check if weather API key exists in config
+        weather_api_key = getattr(config, 'OPENWEATHER_API', None)
+        if weather_api_key and weather_api_key != "your_openweather_api_key_here":
+            url = f"https://api.weatherapi.com/v1/current.json?key={weather_api_key}&q={lat},{lon}"
+            response = requests.get(url)
+            data = response.json()
+            return {
+                "temp_c": data['current']['temp_c'],
+                "humidity": data['current']['humidity'],
+                "condition": data['current']['condition']['text'],
+                "wind_kph": data['current']['wind_kph']
+            }
+        else:
+            return {"error": "Weather API key not configured or placeholder value"}
     except Exception as e:
         return {"error": "Weather fetch failed", "details": str(e)}
 
-def predict_crop_yield_from_location(crop_input,lat, lon):
+def predict_crop_yield_from_location(crop_input, lat, lon):
     district, place_name, error = get_district_from_coordinates(lat, lon)
     if error:
         return {"error": error}
+    
+    if district is None:
+        return {"error": "Could not determine district from coordinates"}
+    
     district_input = clean_district_name(district)
 
     try:
@@ -302,6 +320,11 @@ def predict_crop_yield_from_location(crop_input,lat, lon):
         return {"error": f"'{crop_input}' not found in crop list."}
 
     yield_col = base_crop_names[crop_input]
+    
+    # Ensure district_input is not None before using lower()
+    if district_input is None:
+        return {"error": "Could not determine district name"}
+    
     district_yield = yield_df[yield_df['Dist Name'].str.lower() == district_input.lower()]
     district_soil = soil_df[soil_df['Dist Name'].str.lower() == district_input.lower()]
 
@@ -390,8 +413,8 @@ def predict_crop_yield_from_location(crop_input,lat, lon):
         "best_crop": {
             "name": best_crop,
             "predicted_yield": {
-                "kg_per_ha": round(best_yield, 2) if best_crop else None,
-                "kg_per_acre": round(best_yield / 2.47105, 2) if best_crop else None,
+                "kg_per_ha": round(best_yield, 2) if best_crop and best_yield is not None else None,
+                "kg_per_acre": round(best_yield / 2.47105, 2) if best_crop and best_yield is not None else None,
             }
         },
         "crop_priority_list": crop_priority_list

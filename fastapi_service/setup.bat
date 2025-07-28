@@ -1,2 +1,2 @@
 uv add -r requirements.txt
-uv run main_fastAPI.py
+uv run app.py

@@ -254,6 +254,8 @@ async def get_top_5_crops(
             return JSONResponse(status_code=404, content={"error": f"District '{district_name}' not found in dataset."})
 
         top_crops = mean_crop_by_district.loc[matched_district].sort_values(ascending=False).head(5)
+        
+        print(top_crops)
 
         return {
             "district": matched_district,
@@ -273,4 +275,4 @@ if __name__ == "__main__":
     print("Server will be available at:")
     print("  - http://localhost:5001")
     print("\nPress CTRL+C to stop the server")
-    uvicorn.run("main_fastAPI:app", host="0.0.0.0", port=5001, reload=True)
+    uvicorn.run("app:app", host="0.0.0.0", port=5001, reload=True)

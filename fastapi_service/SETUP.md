@@ -33,7 +33,7 @@ pip install -r requirements.txt
 
 2. Run the FastAPI server:
 ```bash
-python main_fastAPI.py
+python app.py
 ```
 
 The server will start on `http://localhost:5000`
