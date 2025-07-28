@@ -15,8 +15,8 @@ const prompts = JSON.parse(readFileSync(promptsPath, 'utf8'));
 const API_CONFIG = {
   baseURL: 'https://revapi.reverieinc.com/',
   headers: {
-    'REV-API-KEY': "a396b4358519a135bf7b919c477aeee114899cd2",
-    'REV-APP-ID': "dev.namexi",
+    'REV-API-KEY': "a04cab9cb76f51dde6e0dea87681787f4fe1b599",
+    'REV-APP-ID': "dev.lowycuty",
     'REV-APPNAME': 'tts',
     'Content-Type': 'application/json'
   }

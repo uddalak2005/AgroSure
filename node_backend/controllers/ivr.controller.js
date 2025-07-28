@@ -9,13 +9,12 @@ import fs from "fs";
 import axios from "axios";
 import FormData from "form-data";
 import path from 'path';
-import { fileURLToPath } from 'url';
-import cropDTMFHelper from '../utils/cropDTMFHelper.util.js';
+import {fileURLToPath} from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const { twiml } = twilio;
+const {twiml} = twilio;
 
 class IvrController {
 
@@ -25,8 +24,6 @@ class IvrController {
         this.twilioPhoneNumber = process.env.TWILIO_PHONE_NUMBER;
         this.client = twilio(this.accountSid, this.authToken);
         this.makeCall = this.makeCall.bind(this);
-        this.generateCropDTMFInstructions = this.generateCropDTMFInstructions.bind(this);
-        this.playAudioSequence = this.playAudioSequence.bind(this);
         this.outGoingIVR = this.outGoingIVR.bind(this);
         this.languageSelection = this.languageSelection.bind(this);
         this.saveName = this.saveName.bind(this);
@@ -36,37 +33,12 @@ class IvrController {
     }
 
 
-    generateCropDTMFInstructions(cropList, language) {
-        console.log("=== Generating Crop DTMF Instructions ===");
-        console.log("Crop List:", cropList);
-        console.log("Language:", language);
-        
-        // Validate crop list first
-        const validation = cropDTMFHelper.validateCropAudioFiles(cropList, language);
-
-        if (!validation.isValid) {
-            console.warn(`Missing audio files for crops: ${validation.missing.join(', ')}`);
-        }
-
-        // Generate audio sequence using helper
-        const audioFiles = cropDTMFHelper.generateAudioSequence(cropList, language);
-        console.log("Total audio files generated:", audioFiles.length);
-        console.log("Audio files:", audioFiles);
-        
-        return audioFiles;
-    }
-
-    playAudioSequence(audioFiles, twimlResponse) {
-        audioFiles.forEach(audioFile => {
-            twimlResponse.play(audioFile);
-        });
-    }
 
 
     async makeCall(req, res) {
         console.log("making call");
         try {
-            const { phone } = req.body;
+            const {phone} = req.body;
 
             const call = await this.client.calls.create({
                 from: this.twilioPhoneNumber,
@@ -154,7 +126,7 @@ class IvrController {
             // Only update language if a valid digit was provided
             if (digit && langMap[digit]) {
                 const lang = langMap[digit];
-                updateSession(callSid, { lang });
+                updateSession(callSid, {lang});
 
                 twimlResponse.play(`${process.env.BASE_URL}/audio/${lang}/2_prompt_name_after_beep.wav`)
 
@@ -205,6 +177,7 @@ class IvrController {
                 fallbackTwiml.play("Sorry, we did not get your name."); //improvement - Made could be in local language
                 fallbackTwiml.redirect(`${process.env.BASE_URL}/ivr/intro`); //scope of improvement of adding a new name fallback function
                 return res.type('text/xml').send(fallbackTwiml.toString());
+
             }
 
             //Get Call language
@@ -238,7 +211,7 @@ class IvrController {
 
             const tempDir = './temp';
             if (!fs.existsSync(tempDir)) {
-                fs.mkdirSync(tempDir, { recursive: true });
+                fs.mkdirSync(tempDir, {recursive: true});
             }
 
             const filename = `recording_${callSid || Date.now()}.wav`;
@@ -248,7 +221,6 @@ class IvrController {
 
             const formData = new FormData();
             formData.append('audio_file', fs.createReadStream(tempFilePath));
-
 
 
             let reverieLang = lang;
@@ -292,7 +264,7 @@ class IvrController {
 
 
             //Storing the name in memory map
-            updateSession(callSid, { name: transcribedText });
+            updateSession(callSid, {name: transcribedText});
             console.log(getSession(callSid));
 
             console.log("Moving to Pincode")
@@ -304,6 +276,8 @@ class IvrController {
                 method: 'POST',
                 timeout: 10
             });
+
+
 
             //To play the audio instruction to enter pincode
             gather.play(`${process.env.BASE_URL}/audio/${lang}/3_enter_pincode.wav`)
@@ -336,7 +310,7 @@ class IvrController {
             // Validate pincode length
             if (!pincode || pincode.length !== 6) {
                 console.log(`Invalid pincode length: ${pincode?.length}. Expected 6 digits.`);
-                
+
                 const gather = twimlResponse.gather({
                     input: 'dtmf',
                     numDigits: 6,
@@ -346,45 +320,61 @@ class IvrController {
                 });
 
                 gather.play(`${process.env.BASE_URL}/audio/${lang}/3_enter_pincode.wav`);
-                
+
                 // Fallback if no input
                 twimlResponse.say("We did not receive your pincode");
                 twimlResponse.redirect(`${process.env.BASE_URL}/ivr/intro`);
-                
+
                 return res.type('text/xml').send(twimlResponse.toString());
             }
 
             // Store valid pincode
-            updateSession(callSid, { pincode });
+            updateSession(callSid, {pincode});
 
             twimlResponse.play(`${process.env.BASE_URL}/audio/${lang}/4_music_or_waiting.wav`);
+
+            // Play background processing music (10 seconds)
+            // twimlResponse.play(`${process.env.BASE_URL}/audio/processing_music.wav`);
+
+            twimlResponse.redirect(`${process.env.BASE_URL}/ivr/fetchAndPlayCrops`);
+
+            return res.type("text/xml").send(twimlResponse.toString());
+
+        } catch (err) {
+            console.log(err.message);
+            twimlResponse.say("Sorry an application error has occurred");
+            return res.status(500).json({
+                message: err.message
+            })
+        }
+    }
+
+    async fetchAndPlayCrops(req, res) {
+        const twimlResponse = new twiml.VoiceResponse();
+
+        try{
+            const callSid = req.body.CallSid;
+            const session = getSession(callSid);
+            const { pincode, lang } = session || {};
+
+            console.log("pincode", pincode, lang);
 
             const apiId = process.env.OPENWEATHER_API_KEY;
 
             const locationData = await axios.get(`http://api.openweathermap.org/geo/1.0/zip?zip=${pincode},IN&appid=${apiId}`)
 
             if (!locationData) {
-                twimlResponse.say("Sorry! Unable to fetch location data");
-                twimlResponse.hangup();
-                return res.status(400).json("We are facing trouble with location data");
+                console.error("Unable to fetch location data");
+                return;
             }
 
             console.log(locationData.data.lat);
             console.log(locationData.data.lon);
 
-            const cropList = await cropDTMFHelper.getAvailableCrops(
-                locationData.data.lat,
-                locationData.data.lon,
-                pincode
-            );
+            const cropList = ['RICE', 'WHEAT', 'COTTON', 'SUGARCANE', 'SORGHUM']; //To be replaced by api call
 
             console.log("Available crops for location:", cropList);
 
-            twimlResponse.play(`${process.env.BASE_URL}/audio/${lang}/5_choose_crop.wav`);
-
-            const audioFiles = this.generateCropDTMFInstructions(cropList, lang);
-
-            // Set up gather for crop selection FIRST
             const gather = twimlResponse.gather({
                 input: 'dtmf',
                 numDigits: 1,
@@ -393,30 +383,36 @@ class IvrController {
                 timeout: 10
             });
 
-            // Play audio files within the gather
-            if (audioFiles.length > 0) {
-                console.log("About to play audio files in gather:");
-                audioFiles.forEach((audioFile, index) => {
-                    console.log(`${index + 1}. ${audioFile}`);
-                    gather.play(audioFile);
-                });
-            } else {
-                console.error("No audio files generated for crop instructions");
-                gather.say("Sorry, unable to load crop options");
-            }
+            cropList.forEach((crop, index) => {
 
-            // Fallback if no input received
-            twimlResponse.say("We did not receive your selection");
-            twimlResponse.redirect(`${process.env.BASE_URL}/ivr/intro`);
+                const cropAudio = encodeURIComponent(`${crop}.wav`);
+                const cropAudioURL = `${process.env.BASE_URL}/audio/${lang}/crop_names/${cropAudio}`;
+
+                console.log(`${index+1} cropAudio : ${cropAudioURL}`)
+                const instructionAudio = encodeURIComponent(`press_${index+1}.wav`);
+
+                const instructionURL = `${process.env.BASE_URL}/audio/${lang}/dtmf_instructions/${instructionAudio}`;
+                console.log(`${index+1} instructionURL : ${instructionURL}`)
+
+                const silenceAudioURL = `${process.env.BASE_URL}/audio/silence_1sec.wav`;
+
+                gather.play(instructionURL);
+                gather.play(silenceAudioURL);
+                gather.play(cropAudioURL);
+
+            });
 
             // Store crop list in session for later use
-            updateSession(callSid, { cropList });
+            updateSession(callSid, {cropList});
+
+            console.log("Processing complete, redirecting call...");
+
+            console.log("Call redirected successfully");
 
             return res.type('text/xml').send(twimlResponse.toString());
 
-        } catch (err) {
-            console.log(err.message);
-            twimlResponse.say("Sorry an application error has occurred");
+        }catch(err){
+            console.log(err);
             return res.status(500).json({
                 message: err.message
             })
@@ -453,7 +449,7 @@ class IvrController {
             }
 
             // Store selected crop
-            updateSession(callSid, { selectedCrop: selectedCrop.name });
+            updateSession(callSid, {selectedCrop: selectedCrop.name});
 
             console.log("Selected crop:", selectedCrop.name);
 
@@ -476,7 +472,7 @@ class IvrController {
             twimlResponse.say("Sorry an application error has occurred");
             return res.status(500).json({
                 message: err.message
-            })
+            });
         }
     }
 
@@ -500,7 +496,7 @@ class IvrController {
             }
 
             // Store land area
-            updateSession(callSid, { landArea });
+            updateSession(callSid, {landArea});
 
             // Play processing done message
             twimlResponse.play(`${process.env.BASE_URL}/audio/${lang}/7_processing_done.wav`);
@@ -509,7 +505,9 @@ class IvrController {
             console.log("Complete session data:", getSession(callSid));
 
             // Clear session after processing
-            clearSession(callSid);
+            clearSession(callSid); // to be removed
+
+            twimlResponse.hangup();
 
             return res.type('text/xml').send(twimlResponse.toString());
 
@@ -522,7 +520,108 @@ class IvrController {
         }
     }
 
+    async makeCallAfterAPIResponse(req, res) {
+        try{
+            console.log("making call after AI Response");
+            try {
+                const {phone} = req.body;
 
+                const call = await this.client.calls.create({
+                    from: this.twilioPhoneNumber,
+                    to: phone,
+                    url: `${process.env.BASE_URL}/ivr/loanRequest`,
+                });
+
+                console.log(call.sid);
+
+                return res.status(200).json(call);
+
+            } catch (err) {
+                return res.status(500).json({
+                    message: err.message,
+                })
+            }
+
+        }catch(err){
+
+        }
+    }
+
+    //Language Choice is still unde development for this part
+    async askForLoanRequest(req, res) {
+        const twimlResponse = new twiml.VoiceResponse();
+        try{
+            const callSid = req.body.CallSid;
+
+            const gather = twimlResponse.gather({
+                input: 'dtmf',
+                numDigits: 1,
+                action: `${process.env.BASE_URL}/ivr/language`,
+                method: 'POST',
+                timeout: 5
+            });
+
+            gather.play(`${process.env.BASE_URL}/audio/8_ask_for_loan_request.wav`);
+
+            twimlResponse.say("We did not receive any input");
+            twimlResponse.redirect(`${process.env.BASE_URL}/ivr/intro`);
+
+            res.type('text/xml');
+            res.send(twimlResponse.toString());
+        }catch(err){
+            console.log(err.message);
+            twimlResponse.say("Sorry an application error has occurred");
+            return res.status(400).json({
+                message: err.message,
+            })
+        }
+    }
+
+    async confirmLoan(req, res) {
+        console.log("languageSelection");
+        const twimlResponse = new twiml.VoiceResponse();
+
+        try {
+            const digit = req.body.Digits;
+            const callSid = req.body.CallSid;
+
+            console.log(getSession(callSid));
+
+            console.log(digit, " ", callSid);
+
+            if(!digit || digit !== '1' || digit !== '2'){
+                const gather = twimlResponse.gather({
+                    input: 'dtmf',
+                    numDigits: 6,
+                    action: `${process.env.BASE_URL}/ivr/confirmLoan`,
+                    method: 'POST',
+                    timeout: 10
+                })
+
+                gather.say("Sorry");
+                gather.play(`${process.env.BASE_URL}/audio/8_ask_for_loan_request.wav`); //language to be set
+
+                // Fallback if no input
+                twimlResponse.say("We did not receive your input");
+                twimlResponse.redirect(`${process.env.BASE_URL}/ivr/askForLoanRequest`);
+
+                return res.type('text/xml').send(twimlResponse.toString());
+            }
+
+            if(digit === '1'){
+                //Sent mail
+            }else{
+                //hangup
+            }
+
+        } catch (err){
+            console.log(err.message);
+            twimlResponse.say("Sorry an application error has occurred");
+            return res.status(400).json({
+                message: err.message,
+            })
+        }
+    }
 }
 
 export default new IvrController();
