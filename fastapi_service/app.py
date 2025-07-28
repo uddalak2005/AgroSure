@@ -273,4 +273,4 @@ if __name__ == "__main__":
     print("Server will be available at:")
     print("  - http://localhost:5001")
     print("\nPress CTRL+C to stop the server")
-    uvicorn.run("main_fastAPI:app", host="0.0.0.0", port=5001, reload=True)
+    uvicorn.run("app:app", host="0.0.0.0", port=5001, reload=True)
