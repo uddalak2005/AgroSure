@@ -1,4 +1,5 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 import os
 import requests
@@ -9,6 +10,11 @@ import config
 import engine
 import futureWeather
 import warnings
+import re
+from geopy.geocoders import Nominatim
+from geopy.exc import GeocoderTimedOut
+import pandas as pd
+
 
 warnings.filterwarnings("ignore")
 
@@ -164,6 +170,102 @@ async def future_weather_prediction(data: WeatherPredictionRequest):
         raise HTTPException(status_code=400, detail=f"Invalid numeric input: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+    
+
+
+## MADE BY UDDALAK MUKHERJEE
+# Load and clean crop data once on startup
+CROP_DATA_PATH = "data/ICRISAT-District_Level_Data_30_Years.csv"
+df_crop = pd.read_csv(CROP_DATA_PATH)
+df_crop_clean = df_crop.drop(columns=['State Code', 'Year', 'State Name'], errors='ignore')
+mean_crop_by_district = df_crop_clean.groupby('Dist Name').mean(numeric_only=True)
+
+def get_district_from_coordinates(lat, lon): 
+    geolocator = Nominatim(user_agent="agrisure-ai")
+    try:
+        location = geolocator.reverse((lat, lon), exactly_one=True)
+    except GeocoderTimedOut:
+        raise Exception("Reverse geocoding service timed out.")
+    except Exception as e:
+        raise Exception(f"Geocoding error: {str(e)}")
+    
+    if not location:
+        raise ValueError("Could not get district from coordinates.")
+    
+    # Handle potential async/coroutine response with type ignoring
+    try:
+        # Use type: ignore to suppress type checker warnings for geopy attributes
+        address = location.raw.get('address', {})  # type: ignore
+    except (AttributeError, TypeError):
+        try:
+            # Fallback: try to get address from location attributes
+            addr_str = str(location.address)  # type: ignore
+            # Basic parsing fallback
+            address = {'display_name': addr_str}
+        except (AttributeError, TypeError):
+            raise ValueError("Could not parse location data.")
+    
+    if not address:
+        raise ValueError("Could not get district from coordinates.")
+    district = (
+        address.get('district') or
+        address.get('state_district') or
+        address.get('county')
+    )
+    if district and 'district' in district.lower():
+        district = district.replace("District", "").strip()
+    return district
+
+def clean_district_name(district):
+    if not isinstance(district, str):
+        return district
+    district = re.sub(r"\s*[-\u2013]\s*(I{1,3}|IV|V|VI|VII|VIII|IX|X|\d+)$", "", district, flags=re.IGNORECASE)
+    district = district.replace("District", "").strip()
+    aliases = {
+        "Purba Bardhaman": "Burdwan",
+        "Paschim Bardhaman": "Burdwan",
+        "Bardhaman": "Burdwan",
+        "Kalna": "Burdwan",
+        "Kalyani": "Nadia",
+        "Raiganj": "Uttar Dinajpur",
+        "Kolkata": "North 24 Parganas"
+    }
+    return aliases.get(district, district)
+
+@app.get("/top-crops")
+async def get_top_5_crops(
+    lat: float = Query(..., description="Latitude of the location"),
+    lon: float = Query(..., description="Longitude of the location")
+):
+    try:
+        district_name = get_district_from_coordinates(lat, lon)
+        if not district_name:
+            return JSONResponse(status_code=404, content={"error": "Could not resolve district from coordinates."})
+        
+        district_name = clean_district_name(district_name)
+
+        matched_district = None
+        for dist in mean_crop_by_district.index:
+            if dist.strip().lower() == district_name.lower():
+                matched_district = dist
+                break
+
+        if not matched_district:
+            return JSONResponse(status_code=404, content={"error": f"District '{district_name}' not found in dataset."})
+
+        top_crops = mean_crop_by_district.loc[matched_district].sort_values(ascending=False).head(5)
+
+        return {
+            "district": matched_district,
+            "top_5_crops": [
+                crop.replace(" (Kg per ha)", "").replace("YIELD", "").strip()
+                for crop in top_crops.index
+            ]
+        }
+
+    except Exception as e:
+        return JSONResponse(status_code=500, content={"error": str(e)})
+
 
 if __name__ == "__main__":
     import uvicorn
@@ -171,4 +273,4 @@ if __name__ == "__main__":
     print("Server will be available at:")
     print("  - http://localhost:5001")
     print("\nPress CTRL+C to stop the server")
-    uvicorn.run("main_fastAPI:app", host="127.0.0.1", port=5001, reload=True)
+    uvicorn.run("main_fastAPI:app", host="0.0.0.0", port=5001, reload=True)
