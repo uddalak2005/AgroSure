@@ -6,7 +6,6 @@ import requests
 import time
 import cloudinary
 import cloudinary.utils
-import config
 import engine
 import futureWeather
 import warnings
@@ -15,17 +14,31 @@ from geopy.geocoders import Nominatim
 from geopy.exc import GeocoderTimedOut
 import pandas as pd
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    print("Warning: python-dotenv not installed. Using system environment variables only.")
 
 warnings.filterwarnings("ignore")
 
 app = FastAPI()
 
-# Configure Cloudinary
-cloudinary.config(
-    cloud_name=config.CLOUDINARY_CLOUD_NAME,
-    api_key=config.CLOUDINARY_API_KEY,
-    api_secret=config.CLOUDINARY_API_SECRET
-)
+# Configure Cloudinary using environment variables
+cloudinary_config = {
+    'cloud_name': os.getenv('CLOUDINARY_CLOUD_NAME'),
+    'api_key': os.getenv('CLOUDINARY_API_KEY'),
+    'api_secret': os.getenv('CLOUDINARY_API_SECRET')
+}
+
+# Validate that all required Cloudinary credentials are present
+if not all(cloudinary_config.values()):
+    print("Warning: Some Cloudinary environment variables are missing!")
+    missing = [k for k, v in cloudinary_config.items() if not v]
+    print(f"Missing: {missing}")
+
+cloudinary.config(**cloudinary_config)
 
 # Ensure upload directory exists
 UPLOAD_FOLDER = 'Uploads'
@@ -136,6 +149,27 @@ async def predict_crop_yield(data: CropYieldRequest):
             lat=data.locationLat,
             lon=data.locationLong
         )
+        return result
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"Invalid numeric input: {str(e)}")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+    
+##### TO be rebuild ; PS - UDDALAK MUKHOPADHYAY
+@app.post("/predictForCropIVR")
+async def predict_crop_yield(data: CropYieldRequest):
+    if not (-90 <= data.locationLat <= 90) or not (-180 <= data.locationLong <= 180):
+        raise HTTPException(status_code=400, detail="Invalid latitude or longitude values")
+
+    try:
+        result = engine.predict_crop_yield_from_location(
+            crop_input=data.cropName.upper(),
+            lat=data.locationLat,
+            lon=data.locationLong
+        )
+        
+        
         return result
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Invalid numeric input: {str(e)}")

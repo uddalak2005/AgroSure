@@ -16,6 +16,13 @@ from sklearn.metrics import mean_absolute_error, mean_absolute_percentage_error
 import requests
 import json
 
+# Load environment variables from .env file
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    print("Warning: python-dotenv not installed. Using system environment variables only.")
+
 # --- EXIF Metadata Extraction ---
 def get_exif_data(image_path):
     if not os.path.exists(image_path):
@@ -278,9 +285,8 @@ def get_crop_priority_list(district_yield, base_crop_names):
 
 def get_weather_data(lat, lon):
     try:
-        import config
-        # Check if weather API key exists in config
-        weather_api_key = getattr(config, 'OPENWEATHER_API', None)
+        # Get weather API key from environment variables
+        weather_api_key = os.getenv('OPENWEATHER_API')
         if weather_api_key and weather_api_key != "your_openweather_api_key_here":
             url = f"https://api.weatherapi.com/v1/current.json?key={weather_api_key}&q={lat},{lon}"
             response = requests.get(url)
