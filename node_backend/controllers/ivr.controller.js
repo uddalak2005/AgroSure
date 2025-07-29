@@ -33,8 +33,6 @@ class IvrController {
     }
 
 
-
-
     async makeCall(req, res) {
         console.log("making call");
         try {
@@ -371,7 +369,24 @@ class IvrController {
             console.log(locationData.data.lat);
             console.log(locationData.data.lon);
 
-            const cropList = ['RICE', 'WHEAT', 'COTTON', 'SUGARCANE', 'SORGHUM']; //To be replaced by api call
+            let cropList;
+
+            try{
+                const cropResponse = await axios.get(`${process.env.FLASK_URL}/top-crops?lat=${locationData.data.lat}&lon=${locationData.data.lon}`);
+
+                if(!cropResponse.data){
+                    console.log(`Could not fetch crop data for ${locationData.data.lat}`);
+                    throw new Error(`Could not fetch crop data for ${locationData.data.lat}`);
+                }
+
+                cropList = cropResponse.data.top_5_crops;
+
+            }catch(err){
+                console.log(err.message);
+                return res.status(400).json({
+                    message : err.message
+                })
+            }
 
             console.log("Available crops for location:", cropList);
 
@@ -440,7 +455,16 @@ class IvrController {
                 return res.type('text/xml').send(twimlResponse.toString());
             }
 
-            const selectedCrop = cropDTMFHelper.getCropByIndex(cropList, parseInt(selectedDigit));
+
+            const digit = parseInt(selectedDigit, 10);
+
+            if (isNaN(digit) || digit < 1 || digit > 5) {
+                twimlResponse.play("Sorry");
+                twimlResponse.redirect(`${process.env.BASE_URL}/ivr/fetchAndPlayCrops`);
+                return res.type('text/xml').send(twimlResponse.toString());
+            }
+
+            const selectedCrop = cropList[parseInt(selectedDigit) - 1];
 
             if (!selectedCrop) {
                 twimlResponse.say("Invalid crop selection");
@@ -449,9 +473,9 @@ class IvrController {
             }
 
             // Store selected crop
-            updateSession(callSid, {selectedCrop: selectedCrop.name});
+            updateSession(callSid, {selectedCrop: selectedCrop});
 
-            console.log("Selected crop:", selectedCrop.name);
+            console.log("Selected crop:", selectedCrop);
 
             // Play land area instruction
             twimlResponse.play(`${process.env.BASE_URL}/audio/${lang}/6_enter_land_area.wav`);
@@ -519,6 +543,7 @@ class IvrController {
             })
         }
     }
+
 
     async makeCallAfterAPIResponse(req, res) {
         try{

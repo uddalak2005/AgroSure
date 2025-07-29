@@ -135,6 +135,21 @@ class KioskController {
             })
         }
     }
+
+    async getAllKiosks(req, res) {
+        try{
+            const kioskData = await Kiosk.find({});
+
+            return res.status(200).json({
+                kioskData
+            });
+        }catch(err){
+            console.error(err.message);
+            return res.status(400).json({
+                message : err.message
+            })
+        }
+    }
 }
 
 export default new KioskController();

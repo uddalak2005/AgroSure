@@ -9,4 +9,6 @@ router.post("/farmer/register", KioskController.addNewFarmer);
 
 router.get("/getAllFarmers/:uid", KioskController.getAllFarmers);
 
+router.get("/getAllKiosks", KioskController.getAllKiosks);
+
 export default router;
