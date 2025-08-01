@@ -231,9 +231,9 @@ class CloudinaryRequest(BaseModel):
 @app.post("/api/damage_detection", response_model=dict)
 async def predict_from_cloudinary(request: CloudinaryRequest):
     try:
-        # Validate fileType
-        valid_extensions = ['jpg', 'jpeg', 'png', 'gif']
-        if request.fileType.lower() not in valid_extensions:
+        # Validate fileType (case-insensitive)
+        valid_extensions = ['jpg', 'jpeg', 'jpe', 'jfif', 'png', 'gif', 'bmp', 'tiff', 'tif', 'webp', 'heic', 'heif', 'ico']
+        if request.fileType.split("/")[1].lower() not in valid_extensions:
             raise HTTPException(status_code=400, detail=f"Invalid file type. Supported: {valid_extensions}")
 
         # Construct Cloudinary URL
@@ -324,7 +324,7 @@ async def predict(file: UploadFile = File(...)):
 # === Root Endpoint ===
 @app.get("/")
 async def root():
-    return {"message": "Welcome to the Crop Disease Detection API. Use POST /predict to upload an image or POST /predict_from_cloudinary to process an image from Cloudinary."}
+    return {"message": "Welcome to the Crop Disease Detection API. Use POST /predict to upload an image or POST /api/damage_detection to process an image from Cloudinary."}
 
 # === Run the FastAPI app with Uvicorn ===
 if __name__ == "__main__":
