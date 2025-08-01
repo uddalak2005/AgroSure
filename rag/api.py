@@ -1,11 +1,13 @@
 import collections
 from collections.abc import MutableMapping
-collections.MutableMapping = MutableMapping
+collections.MutableMapping = MutableMapping  # Patch for deprecated MutableMapping
+
 import os
 import shutil
 os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"  # Suppress TensorFlow warnings
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from langchain_huggingface import HuggingFaceEmbeddings
 from langchain_community.vectorstores import Chroma
@@ -18,7 +20,6 @@ import json
 import logging
 import config  # Ensure config.py has GEMINI_API_KEY
 from typing import Dict
-from fastapi.responses import JSONResponse
 
 # Setup logging
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -54,7 +55,7 @@ async def startup_event():
 
     # Load JSON QA Knowledge Base
     try:
-        with open("./crop_disease_qa.json", "r", encoding="utf-8") as f:
+        with open("crop_disease_qa.json", "r", encoding="utf-8") as f:
             data = json.load(f)
         logger.debug("JSON loaded, length: %d", len(data))
     except Exception as e:
@@ -110,6 +111,7 @@ async def startup_event():
         """
     )
     try:
+        global rag_chain
         rag_chain = RetrievalQA.from_chain_type(
             llm=llm,
             retriever=retriever,
@@ -154,3 +156,9 @@ async def reset_session(session_id: str):
     global session_states
     session_states.pop(session_id, None)
     return JSONResponse(content={"message": f"Session {session_id} reset"})
+
+# Run the FastAPI app with Uvicorn
+if __name__ == "__main__":
+    import uvicorn
+    print("Starting FastAPI server")
+    uvicorn.run(app, host="0.0.0.0", port=5002)

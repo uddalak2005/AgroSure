@@ -2,25 +2,31 @@ import torch
 from torchvision import transforms
 from PIL import Image
 import torch.nn as nn
-from timm import create_model
 import torch.nn.functional as F
+from timm import create_model
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
 import io
-import uuid
 import os
 
-app = FastAPI(title="Crop Disease Detection API", description="API for detecting crop diseases using ResMamba model")
+# FastAPI app
+app = FastAPI(
+    title="Crop Disease Detection API",
+    description="API for detecting crop diseases using ResMamba model"
+)
 
 # === Device Setup ===
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # === Helper Function to Load Model ===
 def load_model_without_module(model, path, device):
-    state_dict = torch.load(path, map_location=device)
-    new_state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
-    model.load_state_dict(new_state_dict)
-    return model
+    try:
+        state_dict = torch.load(path, map_location=device)
+        new_state_dict = {k.replace("module.", ""): v for k, v in state_dict.items()}
+        model.load_state_dict(new_state_dict)
+        return model
+    except Exception as e:
+        raise Exception(f"Error loading model from {path}: {str(e)}")
 
 # === ResNet50Classifier ===
 class ResNet50Classifier(nn.Module):
@@ -109,17 +115,21 @@ class ResMamba(nn.Module):
 
 # === Setup Models ===
 num_classes = 38
-eff_model = ResNet50Classifier(num_classes=num_classes).to(device)
-load_model_without_module(eff_model, "/content/drive/MyDrive/Damage_Detection_Crop_Resmamba/resnet50_classifier.pth", device)
-eff_model.eval()
+try:
+    eff_model = ResNet50Classifier(num_classes=num_classes).to(device)
+    load_model_without_module(eff_model, "/content/drive/MyDrive/Damage_Detection_Crop_Resmamba/resnet50_classifier.pth", device)
+    eff_model.eval()
 
-vmamba_model = VMambaClassifier(num_classes=num_classes).to(device)
-load_model_without_module(vmamba_model, "/content/drive/MyDrive/Damage_Detection_Crop_Resmamba/vmamba_classifier.pth", device)
-vmamba_model.eval()
+    vmamba_model = VMambaClassifier(num_classes=num_classes).to(device)
+    load_model_without_module(vmamba_model, "/content/drive/MyDrive/Damage_Detection_Crop_Resmamba/vmamba_classifier.pth", device)
+    vmamba_model.eval()
 
-resmamba_model = ResMamba(eff_model, vmamba_model, num_classes=num_classes).to(device)
-load_model_without_module(resmamba_model, "/content/drive/MyDrive/Damage_Detection_Crop_Resmamba/ResMamba.pth", device)
-resmamba_model.eval()
+    resmamba_model = ResMamba(eff_model, vmamba_model, num_classes=num_classes).to(device)
+    load_model_without_module(resmamba_model, "/content/drive/MyDrive/Damage_Detection_Crop_Resmamba/ResMamba.pth", device)
+    resmamba_model.eval()
+except Exception as e:
+    print(f"Error initializing models: {str(e)}")
+    raise
 
 # === Transform for Image ===
 val_transform = transforms.Compose([
@@ -200,3 +210,8 @@ async def predict(file: UploadFile = File(...)):
 @app.get("/")
 async def root():
     return {"message": "Welcome to the Crop Disease Detection API. Use POST /predict to upload an image for disease detection."}
+
+# === Run the FastAPI app with Uvicorn ===
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=5003)
