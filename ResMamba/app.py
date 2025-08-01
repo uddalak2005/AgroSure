@@ -242,7 +242,7 @@ async def predict_from_cloudinary(request: CloudinaryRequest):
         )
 
         # Download image
-        local_path = os.path.join(UPLOAD_FOLDER, f"{uuid.uuid4()}.{request.fileType}")
+        local_path = os.path.join(UPLOAD_FOLDER, f"{uuid.uuid4()}.{request.fileType.lower()}")
         try:
             response = requests.get(cloudinary_url, stream=True)
             if response.status_code != 200:
@@ -286,7 +286,7 @@ async def predict(file: UploadFile = File(...)):
             raise HTTPException(status_code=400, detail="File must have a filename")
 
         # Generate a unique filename
-        file_extension = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
+        file_extension = file.filename.split('.')[-1].lower()
         unique_filename = f"{uuid.uuid4()}.{file_extension}"
         local_path = os.path.join(UPLOAD_FOLDER, unique_filename)
 
