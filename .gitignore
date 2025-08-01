@@ -7,9 +7,12 @@ fastapi_service/.venv
 fastapi_service/__pycache__
 fastapi_service/config.py
 fastapi_service/models
+fastapi_service/.env
 kisan_sathi_service/pytorch_model.bin
 kisan_sathi_service/tokenizer_config.json
 kisan_sathi_service/spice.model
-kisan_sathi_service/venv
+kisan_sathi_service/.venv
 kisan_sathi_service/.env
+resmamba/.env
+resmamba/.venv
 Test_Image

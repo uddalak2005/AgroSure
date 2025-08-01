@@ -58,21 +58,6 @@ const insuranceSchema = new mongoose.Schema({
                 Date.now
         }
     },
-    cropImage: {
-        fileurl: String,
-        publicId: {
-            type: String,
-            required: true
-        },
-        originalName: String,
-        fileType: String,
-        fieldName: String,
-        fraudFlag: Boolean,
-        createdAt: {
-            type: Date, default:
-                Date.now
-        }
-    },
     fieldImage: {
         fileurl: String,
         publicId: {

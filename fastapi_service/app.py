@@ -155,26 +155,6 @@ async def predict_crop_yield(data: CropYieldRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
     
-    
-##### TO be rebuild ; PS - UDDALAK MUKHOPADHYAY
-@app.post("/predictForCropIVR")
-async def predict_crop_yield(data: CropYieldRequest):
-    if not (-90 <= data.locationLat <= 90) or not (-180 <= data.locationLong <= 180):
-        raise HTTPException(status_code=400, detail="Invalid latitude or longitude values")
-
-    try:
-        result = engine.predict_crop_yield_from_location(
-            crop_input=data.cropName.upper(),
-            lat=data.locationLat,
-            lon=data.locationLong
-        )
-        
-        
-        return result
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=f"Invalid numeric input: {str(e)}")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/futureWeatherPrediction")
 async def future_weather_prediction(data: WeatherPredictionRequest):

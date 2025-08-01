@@ -8,13 +8,60 @@ cloudinary.config({
     api_secret : process.env.CLOUDINARY_API_SECRET,
 });
 
-const uploadToCloudinary = async(localFilePath, resourceType = 'raw') => {
-    return await cloudinary.uploader.upload(localFilePath, {
+// Function to determine resource type based on file
+const getResourceType = (file) => {
+    // Image MIME types
+    const imageMimeTypes = [
+        'image/png',
+        'image/jpeg', 
+        'image/jpg',
+        'image/JPG',
+        'image/gif',
+        'image/bmp',
+        'image/webp',
+        'image/svg+xml',
+        'image/x-png'
+    ];
+    
+    // Check by MIME type first
+    if (file.mimetype && imageMimeTypes.includes(file.mimetype)) {
+        return 'image';
+    }
+    
+    // Check by file extension as backup
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.bmp', '.webp', '.svg'];
+    const fileName = file.originalname || file.name || '';
+    const fileExtension = fileName.toLowerCase().substring(fileName.lastIndexOf('.'));
+    
+    if (imageExtensions.includes(fileExtension)) {
+        return 'image';
+    }
+    
+    // Default to raw for documents
+    return 'raw';
+};
+
+const uploadToCloudinary = async(localFilePath, file = null, resourceType = null) => {
+    // Auto-determine resource type if not provided
+    const finalResourceType = resourceType || (file ? getResourceType(file) : 'raw');
+    
+    const uploadOptions = {
         type: 'authenticated',
-        folder:'agriSure',
-        resource_type : resourceType,
-        image_metadata : true
-    });
+        folder: 'agriSure',
+        resource_type: finalResourceType,
+        image_metadata: true
+    };
+    
+    // Add image-specific optimizations for image types
+    if (finalResourceType === 'image') {
+        uploadOptions.quality = 'auto';
+        uploadOptions.fetch_format = 'auto';
+        uploadOptions.flags = 'progressive';
+    }
+    
+    console.log(`Uploading ${file?.originalname || 'file'} as ${finalResourceType} type`);
+    
+    return await cloudinary.uploader.upload(localFilePath, uploadOptions);
 };
 
 export default uploadToCloudinary;

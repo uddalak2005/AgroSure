@@ -24,20 +24,20 @@ class InsuranceController {
                 fileMetaMap.damageImage && fileMetaMap.damageImage.length > 0
                     ? fileMetaMap.damageImage[0]
                     : null;
-            const cropImage =
-                fileMetaMap.cropImage && fileMetaMap.cropImage.length > 0
-                    ? fileMetaMap.cropImage[0]
-                    : null;
+            // const cropImage =
+            //     fileMetaMap.cropImage && fileMetaMap.cropImage.length > 0
+            //         ? fileMetaMap.cropImage[0]
+            //         : null;
 
             const fieldImage =
                 fileMetaMap.fieldImage && fileMetaMap.fieldImage.length > 0
                     ? fileMetaMap.fieldImage[0]
                     : null;
 
-            if (!damageImage || !cropImage || !fieldImage || !policyDoc) {
+            if (!damageImage || !fieldImage || !policyDoc) {
                 return res.status(400).json({
                     message:
-                        "All required files (policyDoc, damageImage, cropImage) must be uploaded",
+                        "All required files (policyDoc, damageImage, fieldImage) must be uploaded",
                 });
             }
 
@@ -48,7 +48,6 @@ class InsuranceController {
                 policyNumber,
                 policyDoc,
                 damageImage,
-                cropImage,
                 fieldImage,
             });
 
@@ -58,7 +57,7 @@ class InsuranceController {
 
             console.log('newInsurance : ', newInsurance);
 
-            const payLoad = await getAIInsights.getDocScore(damageImage, cropImage, fieldImage);
+            const payLoad = await getAIInsights.getDocScore(damageImage, fieldImage);
 
             console.log('payLoad : ', payLoad);
 
