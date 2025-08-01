@@ -13,6 +13,11 @@ import cloudinary.uploader
 import cloudinary.api
 import uuid
 import uvicorn
+from dotenv import load_dotenv
+from pydantic import BaseModel
+
+# Load environment variables from .env file
+load_dotenv()
 
 # === FastAPI App ===
 app = FastAPI(
@@ -26,6 +31,12 @@ cloudinary_config = {
     'api_key': os.getenv('CLOUDINARY_API_KEY'),
     'api_secret': os.getenv('CLOUDINARY_API_SECRET')
 }
+
+class ImageRequest(BaseModel):
+    publicId: str
+    fileType: str
+    originalName: str | None = None
+
 
 # Validate Cloudinary credentials
 if not all(cloudinary_config.values()):
@@ -60,12 +71,15 @@ class ResNet50Classifier(nn.Module):
         self.backbone = create_model('resnet50', pretrained=pretrained, num_classes=0)
         self.feature_dim = self.backbone.num_features
         act_fn = nn.ReLU(inplace=True) if activation == "relu" else nn.GELU() if activation == "gelu" else nn.SiLU()
-        layers = [nn.Dropout(dropout_rate)]
+        layers = []
+        layers.append(nn.Dropout(dropout_rate))
         if hidden_dim:
-            layers.extend([nn.Linear(self.feature_dim, hidden_dim)])
+            layers.append(nn.Linear(self.feature_dim, hidden_dim))
             if use_bn:
                 layers.append(nn.BatchNorm1d(hidden_dim))
-            layers.extend([act_fn, nn.Dropout(dropout_rate), nn.Linear(hidden_dim, num_classes)])
+            layers.append(act_fn)
+            layers.append(nn.Dropout(dropout_rate))
+            layers.append(nn.Linear(hidden_dim, num_classes))
         else:
             layers.append(nn.Linear(self.feature_dim, num_classes))
         self.classifier = nn.Sequential(*layers)
@@ -142,15 +156,15 @@ class ResMamba(nn.Module):
 num_classes = 38
 try:
     eff_model = ResNet50Classifier(num_classes=num_classes).to(device)
-    load_model_without_module(eff_model, "/content/drive/MyDrive/Damage_Detection_Crop_Resmamba/resnet50_classifier.pth", device)
+    load_model_without_module(eff_model, "./models/resnet50_classifier.pth", device)
     eff_model.eval()
 
     vmamba_model = VMambaClassifier(num_classes=num_classes).to(device)
-    load_model_without_module(vmamba_model, "/content/drive/MyDrive/Damage_Detection_Crop_Resmamba/vmamba_classifier.pth", device)
+    load_model_without_module(vmamba_model, "./models/vmamba_classifier.pth", device)
     vmamba_model.eval()
 
     resmamba_model = ResMamba(eff_model, vmamba_model, num_classes=num_classes).to(device)
-    load_model_without_module(resmamba_model, "/content/drive/MyDrive/Damage_Detection_Crop_Resmamba/ResMamba.pth", device)
+    load_model_without_module(resmamba_model, "./models/ResMamba.pth", device)
     resmamba_model.eval()
 except Exception as e:
     print(f"Error initializing models: {str(e)}")
@@ -208,25 +222,32 @@ def predict_single_image(image: Image.Image, model, class_names, transform, devi
     return {
         "Crop_name": crop,
         "Disease": disease,
-        "Accuracy (%)": accuracy,
+        "Accuracy": accuracy,
         "Damage_Report": damage_status
     }
 
 # === FastAPI Endpoint ===
-@app.post("/predict", response_model=dict)
+@app.post("/api/damage_detection", response_model=dict)
 async def predict(file: UploadFile = File(...)):
+    print(f"Received file: {file.filename}, content_type: {file.content_type}, size: {file.size}")
     try:
         # Validate file type
-        if not file.content_type.startswith('image/'):
-            raise HTTPException(status_code=400, detail="File must be an image")
+        if not file.content_type or not file.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail=f"File must be an image. Received: {file.content_type}")
+
+        # Validate filename
+        if not file.filename:
+            raise HTTPException(status_code=400, detail="File must have a filename")
 
         # Generate a unique filename
-        file_extension = file.filename.split('.')[-1]
+        file_extension = file.filename.split('.')[-1] if '.' in file.filename else 'jpg'
         unique_filename = f"{uuid.uuid4()}.{file_extension}"
         local_path = os.path.join(UPLOAD_FOLDER, unique_filename)
 
         # Save file locally
         contents = await file.read()
+        print(f"File content length: {len(contents)} bytes")
+        
         with open(local_path, 'wb') as f:
             f.write(contents)
 
@@ -238,7 +259,9 @@ async def predict(file: UploadFile = File(...)):
                 resource_type="image"
             )
             cloudinary_url = upload_result['secure_url']
+            print(f"Uploaded to Cloudinary: {cloudinary_url}")
         except Exception as e:
+            print(f"Cloudinary upload error: {str(e)}")
             raise HTTPException(status_code=500, detail=f"Cloudinary upload failed: {str(e)}")
         finally:
             # Clean up local file
@@ -253,14 +276,48 @@ async def predict(file: UploadFile = File(...)):
         result['Image_URL'] = cloudinary_url
 
         return JSONResponse(content=result)
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"Unexpected error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error processing image: {str(e)}")
+
+# === FastAPI Endpoint ===
+@app.post("/predictWithFile", response_model=dict)
+async def predictWithFile(file: UploadFile = File(...)):
+    try:
+        # Validate file type
+        if not file.content_type or not file.content_type.startswith('image/'):
+            raise HTTPException(status_code=400, detail="File must be an image")
+
+        # Read and process image
+        contents = await file.read()
+        image = Image.open(io.BytesIO(contents)).convert('RGB')
+
+        # Perform prediction
+        result = predict_single_image(image, resmamba_model, class_names, val_transform, device)
+
+        return JSONResponse(content=result)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing image: {str(e)}")
 
 # === Root Endpoint ===
 @app.get("/")
 async def root():
-    return {"message": "Welcome to the Crop Disease Detection API. Use POST /predict to upload an image for disease detection."}
+    return {"message": "Welcome to the Crop Disease Detection API. Use POST /api/damage_detection to upload an image for disease detection."}
+
+# === Health Check Endpoint ===
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy", "message": "API is running"}
+
+# === Favicon Endpoint ===
+@app.get("/favicon.ico")
+async def favicon():
+    from fastapi.responses import Response
+    return Response(status_code=204)
 
 # === Run the FastAPI app with Uvicorn ===
 if __name__ == "__main__":
+    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=5003)
