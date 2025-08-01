@@ -51,7 +51,7 @@ class CropController {
 
             return res.status(201).json({ message: "Crop Saved Successfully", newCrop });
         } catch (err) {
-            console.log(err.message);
+            console.error(err.message);
             res.status(400).json({
                 message: "error occured while creating new crop",
                 error: err.message
@@ -109,7 +109,7 @@ class CropController {
             });
 
         } catch (err) {
-            console.log(err.message);
+            console.error(err.message);
             return res.status(500).json({
                 message: "Failed to get Prediciton",
                 error: err.message
@@ -146,7 +146,7 @@ class CropController {
             return res.status(200).json({ cropRecord: modifiedCropRecord });
 
         } catch (err) {
-            console.log(err);
+            console.error(err);
             res.status(400).json({
                 message: "Unable to fetch past records",
                 error: err.message

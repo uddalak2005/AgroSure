@@ -8,6 +8,7 @@ import kioskRoutes from "./routes/kiosk.route.js";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath} from "url";
+import morgan from 'morgan';
 
 const app = express();
 
@@ -20,6 +21,9 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
+
+app.use(morgan(':remote-addr :method :url :status')); //logger
+app.get('/favicon.ico', (req, res) => res.status(204).end()); //To bypass favicon check by browsers
 
 app.use(express.json());
 app.use(express.urlencoded({extended : true}));

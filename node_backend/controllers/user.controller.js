@@ -38,13 +38,15 @@ class RegistrationController {
                 crops
             });
 
+            const user = newUser;
+
             res.status(201).json({
                 message: "User registered successfully!" ,
-                newUser
+                user
             });
         }
         catch (err) {
-            console.log(err.message);
+            console.error(err.message);
             res.status(400).json({
                 message: "Unable to register user",
                 error: err.message
@@ -55,12 +57,13 @@ class RegistrationController {
     async getUserByUID(req, res) {
         const { uid } = req.params;
         console.log('lookig for user : ',uid);
-
         
 
         if (!uid) {
             return res.status(400).json({ message: "UID is required" });
         }
+
+
 
         try {
             

@@ -94,7 +94,7 @@ class InsuranceController {
                     payLoad
                 });
         } catch (err) {
-            console.log(err.message);
+            console.error(err.message);
             return res.status(400).json({
                 message: "Failed to instantiate insurance",
                 error: err.message,
@@ -115,6 +115,7 @@ class InsuranceController {
             }
             res.json(insurance);
         } catch (err) {
+            console.error(err.message)
             res.status(400).json({ error: err.message });
         }
     }
