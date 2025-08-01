@@ -1,0 +1,3 @@
+fastapi_service - 5001
+rag - 5002
+ResMamba - 5003

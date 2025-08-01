@@ -5,9 +5,11 @@ class KioskController {
 
     async registerKiosk(req, res) {
         try {
+            console.log(req.body);
             const {uid, name, email, phone, address, locationLat, locationLong} = req.body;
 
             if (!uid || !name || !email || !phone || !address || !locationLat || !locationLong) {
+                console.log("Missing or invalid fields");
                 return res.status(400).json({error: 'Missing or invalid fields'});
             }
 
@@ -38,6 +40,7 @@ class KioskController {
 
     async addNewFarmer(req, res) {
         try {
+            console.log(req.body);
             const {
                 kioskUid,
                 uid,
@@ -74,7 +77,7 @@ class KioskController {
                 })
             }
 
-            const farmerId = newFarmer.data.newUser._id;
+            const farmerId = newFarmer.data.user._id;
 
             const updatedKiosk = await Kiosk.findOneAndUpdate(
                 {uid: kioskUid},
@@ -92,7 +95,7 @@ class KioskController {
 
             return res.status(201).json({
                 message: "Farmer created and added to kiosk successfully",
-                farmer: newFarmer.data.newUser,
+                user: newFarmer.data.user,
                 kiosk: updatedKiosk
             });
 
