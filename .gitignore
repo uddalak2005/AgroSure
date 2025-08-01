@@ -6,7 +6,6 @@ node_backend/utils/downloadTTS.util.js
 fastapi_service/.venv
 fastapi_service/__pycache__
 fastapi_service/config.py
-fastapi_service/models
 fastapi_service/.env
 kisan_sathi_service/pytorch_model.bin
 kisan_sathi_service/tokenizer_config.json
