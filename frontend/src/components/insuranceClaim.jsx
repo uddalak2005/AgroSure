@@ -431,7 +431,7 @@ const InsuranceClaim = ({ user, onBack }) => {
                       focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring 
                       focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 
                       w-full bg-agricultural-wheat-brown border border-bg-amber-800
-                      hover:bg-agricultural-crop-green text-white hover:bg-amber-600 
+                      text-white hover:bg-amber-600 
                       h-10 px-4 py-2"
                     >
                       {isLoadingAi ? 'Analyzing Policy...' : 'Analyze Policy with AI'}
