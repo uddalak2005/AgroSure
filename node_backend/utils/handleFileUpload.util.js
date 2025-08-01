@@ -16,7 +16,7 @@ async function handleMultipleUploads(req, resourceType = 'raw') {
                 const type = resourceType || (file.mimetype.startsWith('image/') ? 'image' : 'raw');
                 const result = await uploadToCloudinary(filePath, type);
 
-                fs.unlinkSync(filePath);
+
 
                 const savedUpload = {
                     publicId: result.public_id,
@@ -25,10 +25,20 @@ async function handleMultipleUploads(req, resourceType = 'raw') {
                     fieldName: file.fieldname,
                 };
 
+                if (filePath && fs.existsSync(filePath)) {
+                    fs.unlinkSync(filePath);
+                    console.log(`🗑️ Deleted local file: ${path.basename(filePath)}`);
+                }
+
+
                 uploadedFiles[fieldName].push(savedUpload);
 
             } catch (err) {
-                fs.unlinkSync(filePath);
+                if (filePath && fs.existsSync(filePath)) {
+                    fs.unlinkSync(filePath);
+                    console.log(`🗑️ Deleted local file: ${path.basename(filePath)}`);
+                }
+
                 console.error(`Failed to upload ${file.originalname}: ${err.message}`);
             }
         }
