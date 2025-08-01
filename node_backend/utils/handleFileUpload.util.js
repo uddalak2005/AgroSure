@@ -1,46 +1,41 @@
 import uploadToCloudinary from '../services/cloudinary.service.js';
+import fs from 'fs';
 
-const handleMultipleUploads = async (req) => {
-    try {
-        const fileMetaMap = {};
-        
-        if (!req.files) {
-            return fileMetaMap;
-        }
-        
-        for (const [fieldName, files] of Object.entries(req.files)) {
-            fileMetaMap[fieldName] = [];
-            
-            const fileArray = Array.isArray(files) ? files : [files];
-            
-            for (const file of fileArray) {
-                try {
-                    console.log(`Processing ${file.originalname} with MIME type: ${file.mimetype}`);
-                    
-                    // FIXED: Pass the file object as second parameter
-                    const result = await uploadToCloudinary(file.path, file);
-                    
-                    fileMetaMap[fieldName].push({
-                        publicId: result.public_id,
-                        fileType: result.resource_type, // This will now be 'image' for images
-                        originalName: file.originalname,
-                        fieldName: fieldName,
-                        url: result.secure_url
-                    });
-                    
-                } catch (uploadError) {
-                    console.error(`Error uploading ${fieldName}:`, uploadError);
-                    throw uploadError;
-                }
+async function handleMultipleUploads(req, resourceType = 'raw') {
+    if (!req.files || Object.keys(req.files).length === 0) return [];
+
+    const uploadedFiles = {};
+
+    for (const fieldName in req.files) {
+        uploadedFiles[fieldName] = [];
+
+        for (const file of req.files[fieldName]) {
+            const filePath = file.path;
+
+            try {
+                const type = resourceType || (file.mimetype.startsWith('image/') ? 'image' : 'raw');
+                const result = await uploadToCloudinary(filePath, type);
+
+                fs.unlinkSync(filePath);
+
+                const savedUpload = {
+                    publicId: result.public_id,
+                    fileType: type,
+                    originalName: file.originalname,
+                    fieldName: file.fieldname,
+                };
+
+                uploadedFiles[fieldName].push(savedUpload);
+
+            } catch (err) {
+                fs.unlinkSync(filePath);
+                console.error(`Failed to upload ${file.originalname}: ${err.message}`);
             }
         }
-        
-        return fileMetaMap;
-        
-    } catch (error) {
-        console.error('Error in handleMultipleUploads:', error);
-        throw error;
     }
-};
+
+    console.log('UPLOADED FILES META:', uploadedFiles);
+    return uploadedFiles;
+}
 
 export default handleMultipleUploads;

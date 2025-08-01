@@ -204,7 +204,7 @@ class SendNotification {
 
             <h4 style="color:#2e7d32; margin-top:20px;">🌾 Crop Damage Assessment</h4>
             <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
-              <tr><td style="padding:8px; border:1px solid #ddd;"><strong>🔍 Damage Status:</strong></td><td style="padding:8px; border:1px solid #ddd; color:${damageDetection.Damage_Report === 'Damaged' ? '#d32f2f' : '#2e7d32'};">${damageDetection.prediction || 'Not available'}</td></tr>
+              <tr><td style="padding:8px; border:1px solid #ddd;"><strong>🔍 Damage Status:</strong></td><td style="padding:8px; border:1px solid #ddd; color:${damageDetection.Damage_Report === 'Damaged' ? '#d32f2f' : '#2e7d32'};">${damageDetection.Damage_Report || 'Not available'}</td></tr>
               <tr><td style="padding:8px; border:1px solid #ddd;"><strong>📊 Accuracy Level:</strong></td><td style="padding:8px; border:1px solid #ddd;">${damageDetection.Accuracy ? `${damageDetection.Accuracy.toFixed(2)}%` : 'Not available'}</td></tr>
               <tr><td style="padding:8px; border:1px solid #ddd;"><strong>🤖 AI Model Used:</strong></td><td style="padding:8px; border:1px solid #ddd;">${'ResMamba'}</td></tr>
               <tr><td style="padding:8px; border:1px solid #ddd;"><strong>✅ Damage Type:</strong></td><td style="padding:8px; border:1px solid #ddd;">${damageDetection.Disease || 'Unknown Damage'}</td></tr>
@@ -213,7 +213,6 @@ class SendNotification {
             <h4 style="color:#2e7d32; margin-top:20px;">🌱 Crop Type Identification</h4>
             <table style="width:100%; border-collapse:collapse; margin-bottom:20px;">
               <tr><td style="padding:8px; border:1px solid #ddd;"><strong>🌾 Identified Crop:</strong></td><td style="padding:8px; border:1px solid #ddd;">${damageDetection.Crop_name || 'Not available'}</td></tr>
-              <tr><td style="padding:8px; border:1px solid #ddd;"><strong>📊 Confidence Level:</strong></td><td style="padding:8px; border:1px solid #ddd;">${damageDetection.Disease || 'Not available'}</td></tr>
               <tr><td style="padding:8px; border:1px solid #ddd;"><strong>✅ Analysis Status:</strong></td><td style="padding:8px; border:1px solid #ddd;">${'Sucessfull'}</td></tr>
             </table>
 

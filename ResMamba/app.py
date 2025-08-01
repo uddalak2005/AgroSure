@@ -54,7 +54,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 # === Helper Function to Generate Signed Cloudinary URL ===
 def get_signed_cloudinary_url(public_id, resource_type='image', expires_in=300):
-    """Generate signed URL for authenticated Cloudinary images"""
+    """Generate signed URL for authenticated Cloudinary images and raw files"""
     try:
         expires_at = int(time.time()) + expires_in  # UNIX timestamp in seconds
         url, options = cloudinary.utils.cloudinary_url(
@@ -68,6 +68,29 @@ def get_signed_cloudinary_url(public_id, resource_type='image', expires_in=300):
     except Exception as e:
         print(f"Failed to generate signed URL: {e}")
         return None
+
+# === Helper Function to Download Files from Cloudinary ===
+def download_file(public_id: str, save_path: str, file_type: str = 'image/jpeg') -> bool:
+    """Download files from Cloudinary (both image and raw files)"""
+    try:
+        resource_type = 'raw' if file_type == 'raw' else 'image'
+        url = get_signed_cloudinary_url(public_id, resource_type=resource_type)
+        
+        if not url:
+            print(f"Failed to generate signed URL for {public_id}")
+            return False
+            
+        response = requests.get(url, headers={'Content-Type': file_type}, timeout=30)
+        if response.status_code == 200:
+            with open(save_path, 'wb') as f:
+                f.write(response.content)
+            return True
+        else:
+            print(f"Failed to download file. Status: {response.status_code}")
+            return False
+    except Exception as e:
+        print(f"Error downloading file: {e}")
+        return False
 
 # === Helper Function to Load Model ===
 def load_model_without_module(model, path, device):
@@ -252,60 +275,58 @@ class CloudinaryRequest(BaseModel):
 async def predict_from_cloudinary(request: CloudinaryRequest):
     try:
         # Extract file extension from originalName if fileType is generic
-        if request.fileType.lower() == "image" and request.originalName:
+        if request.fileType.lower() in ["image", "raw"] and request.originalName:
             file_extension = request.originalName.split('.')[-1].lower() if '.' in request.originalName else 'jpg'
         else:
             file_extension = request.fileType.lower()
         
-        # Validate file extension
-        valid_extensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'tif', 'webp']
+        # Determine resource type and content type for Cloudinary
+        if request.fileType.lower() == 'raw':
+            resource_type = 'raw'
+            content_type = 'raw'
+        else:
+            resource_type = 'image'
+            content_type = f'image/{file_extension}'
+        
+        # Validate file extension - support both image and raw file types
+        image_extensions = ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'tif', 'webp', 'svg']
+        raw_extensions = ['pdf', 'doc', 'docx', 'txt', 'csv', 'xlsx', 'zip', 'rar', 'mp4', 'avi', 'mov', 'mp3', 'wav']
+        valid_extensions = image_extensions + raw_extensions + ['raw', 'image']
+        
         if file_extension not in valid_extensions:
             raise HTTPException(status_code=400, detail=f"Invalid file type. Supported: {valid_extensions}")
 
-        # Construct Cloudinary URL - handle both regular and signed URLs
-        cloudinary_url = None
-
-        try:
-            cloudinary_url = get_signed_cloudinary_url(request.publicId)
-            if cloudinary_url:
-                print(f"Method 1 URL (signed/authenticated): {cloudinary_url}")
-        except Exception as e:
-            print(f"Method 1 (signed URL) failed: {e}")
+        # For disease detection, we need to check if it's actually an image file that can be processed
+        is_processable_image = file_extension in image_extensions or (
+            resource_type == 'image' and file_extension in ['jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'tif', 'webp']
+        )
         
-        
-        if not cloudinary_url:
-            raise HTTPException(status_code=500, detail="Failed to construct any Cloudinary URL")
+        if not is_processable_image:
+            raise HTTPException(status_code=400, detail=f"File type '{file_extension}' is not a processable image format for disease detection")
 
-        # Download image
+        # Download file using the new download function
         local_path = os.path.join(UPLOAD_FOLDER, f"{uuid.uuid4()}.{file_extension}")
+        
         try:
-            print(f"Attempting to download from URL: {cloudinary_url}")
-            response = requests.get(cloudinary_url, stream=True, timeout=30)
-            print(f"Response status: {response.status_code}")
+            print(f"Attempting to download {resource_type} file: {request.publicId}")
+            success = download_file(request.publicId, local_path, content_type)
             
-            if response.status_code != 200:
-                print(f"Failed to download. Status: {response.status_code}, Response: {response.text}")
-                raise HTTPException(status_code=500, detail=f"Failed to download image from Cloudinary. Status: {response.status_code}")
+            if not success:
+                raise HTTPException(status_code=500, detail="Failed to download file from Cloudinary")
             
-            with open(local_path, 'wb') as f:
-                for chunk in response.iter_content(chunk_size=8192):
-                    f.write(chunk)
-            
-            print(f"Successfully downloaded image to: {local_path}")
+            print(f"Successfully downloaded file to: {local_path}")
             
             # Verify file was created and has content
             if not os.path.exists(local_path) or os.path.getsize(local_path) == 0:
                 raise Exception("Downloaded file is empty or doesn't exist")
 
-            # Open and process image
+            # Open and process image for disease detection
             image = Image.open(local_path).convert('RGB')
             print(f"Successfully opened image with size: {image.size}")
             
-        except requests.exceptions.RequestException as e:
-            raise HTTPException(status_code=500, detail=f"Network error downloading image: {str(e)}")
         except Exception as e:
-            print(f"Error in image processing: {str(e)}")
-            raise HTTPException(status_code=500, detail=f"Error downloading or opening image: {str(e)}")
+            print(f"Error in file processing: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"Error downloading or opening file: {str(e)}")
         finally:
             # Clean up local file
             if os.path.exists(local_path):
