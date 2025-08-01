@@ -14,7 +14,6 @@ const InsuranceClaim = ({ user, onBack }) => {
     policyNumber: '',
     policyDocument: null,
     damageImage: null,
-    cropImage: null,
     fieldImage : null
   });
 
