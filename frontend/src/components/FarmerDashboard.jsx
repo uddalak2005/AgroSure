@@ -16,6 +16,7 @@ import {
   Shield,
   MessageCircle
 } from "lucide-react";
+import { useParams } from 'react-router-dom';
 import YieldPredictionForm from "./YieldPredictionForm"; // Assuming this is already non-ShadCN or will be converted
 import YieldResults from "./YieldResult";             // Assuming this is already non-ShadCN or will be converted
 import LoanApplication from "./loanApplication";
@@ -45,6 +46,8 @@ const FarmerDashboard = ({ user, onLogout }) => {
     phone: '',
     aadhar: '',
   });
+
+  const {id} = useParams();
 
   const [isMobile, setIsMobile] = useState(false); // Start with false, will be set correctly in useEffect
   
@@ -112,10 +115,15 @@ const FarmerDashboard = ({ user, onLogout }) => {
   };
 
   useEffect(() => {
+    if(id === '' || id === null){
+      console.log("Uid accessed too early!");
+      return;
+    }
      try{
       onAuthStateChanged(auth, (user) => {
         if(user){
-          const response = fetch(`${import.meta.env.VITE_BACKEND_URL}/user/dashboard/${user.uid}`,{
+          console.log("Fetch called");
+          const response = fetch(`https://electro-individually-ea-patricia.trycloudflare.com/user/dashboard/${user.uid}`,{
             method: 'GET',
           })
           .then(response => {
@@ -175,6 +183,26 @@ const FarmerDashboard = ({ user, onLogout }) => {
               setDisplayData(fallbackData);
               console.log("DB fetch failed, setting hardcoded fallback data after localStorage error:", fallbackData);
             }
+          });
+        }
+
+        else{
+          console.log("Fetch called");
+          const response = fetch(`https://electro-individually-ea-patricia.trycloudflare.com/user/dashboard/${id}`,{
+            method: 'GET',
+          })
+          .then(response => {
+            console.log("DB fetch response:", response);
+            return response.json();
+          })
+          .then(data => {
+            console.log("Parsed response data:", data);
+            setUserData(data);
+            setDisplayData(data);
+            console.log("DB fetch success, setting display data : ", data);
+          })
+          .catch(error => {
+            console.error('Error fetching farmer data:', error);
           });
         }
       });
@@ -303,7 +331,7 @@ const FarmerDashboard = ({ user, onLogout }) => {
                   <MapPin className="h-4 w-4 text-agricultural-stone-gray mr-2" />
                   <span className="text-agricultural-soil-brown">
                     {displayData?.user?.locationLat && displayData?.user?.locationLong 
-                      ? `${displayData.user.locationLat}, ${displayData.user.locationLong}` 
+                      ? `${displayData?.user?.locationLat}, ${displayData?.user?.locationLong}` 
                       : 'Location not set'}
                   </span>
                 </div>
@@ -337,7 +365,6 @@ const FarmerDashboard = ({ user, onLogout }) => {
                   : 'text-agricultural-soil-brown hover:bg-agricultural-soft-sand hover:text-agricultural-soil-brown'
               }`}
               onClick={() => {
-                console.log('Prediction clicked - isMobile:', isMobile, 'sidebarCollapsed:', sidebarCollapsed);
                 if(isMobile){
                   setSidebarCollapsed(true);
                 }
@@ -355,7 +382,6 @@ const FarmerDashboard = ({ user, onLogout }) => {
                   : 'text-agricultural-soil-brown hover:bg-agricultural-soft-sand hover:text-agricultural-soil-brown'
               }`}
               onClick={() => {
-                console.log('Loan clicked - isMobile:', isMobile, 'sidebarCollapsed:', sidebarCollapsed);
                 if(isMobile){
                   setSidebarCollapsed(true);
                 }
@@ -373,7 +399,6 @@ const FarmerDashboard = ({ user, onLogout }) => {
                   : 'text-agricultural-soil-brown hover:bg-agricultural-soft-sand hover:text-agricultural-soil-brown'
               }`}
               onClick={() => {
-                console.log('Insurance clicked - isMobile:', isMobile, 'sidebarCollapsed:', sidebarCollapsed);
                 if(isMobile){
                   setSidebarCollapsed(true);
                 }
@@ -392,7 +417,6 @@ const FarmerDashboard = ({ user, onLogout }) => {
                justify-start text-agricultural-soil-brown hover:bg-agricultural-soft-sand 
                hover:text-agricultural-soil-brown"
               onClick={() => {
-                console.log('Past reports clicked - isMobile:', isMobile, 'sidebarCollapsed:', sidebarCollapsed);
                 if(isMobile){
                   setSidebarCollapsed(true);
                 }
@@ -411,7 +435,6 @@ const FarmerDashboard = ({ user, onLogout }) => {
                justify-start text-agricultural-soil-brown hover:bg-agricultural-soft-sand 
                hover:text-agricultural-soil-brown"
               onClick={() => {
-                console.log('Kisaan Saathi clicked - isMobile:', isMobile, 'sidebarCollapsed:', sidebarCollapsed);
                 if(isMobile){
                   setSidebarCollapsed(true);
                 }

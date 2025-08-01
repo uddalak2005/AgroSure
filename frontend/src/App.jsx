@@ -9,7 +9,7 @@ export default function App(){
     <Router>
         <Routes>
             <Route path="/" element={<Index />}/>
-            <Route path="/dashboard" element={<FarmerDashboard/>}/>
+            <Route path="/dashboard/:id" element={<FarmerDashboard/>}/>
         </Routes>
     </Router>
     )
