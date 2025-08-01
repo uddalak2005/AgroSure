@@ -8,12 +8,37 @@ from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
 import io
 import os
+import cloudinary
+import cloudinary.uploader
+import cloudinary.api
+import uuid
+import uvicorn
 
-# FastAPI app
+# === FastAPI App ===
 app = FastAPI(
     title="Crop Disease Detection API",
     description="API for detecting crop diseases using ResMamba model"
 )
+
+# === Cloudinary Configuration ===
+cloudinary_config = {
+    'cloud_name': os.getenv('CLOUDINARY_CLOUD_NAME'),
+    'api_key': os.getenv('CLOUDINARY_API_KEY'),
+    'api_secret': os.getenv('CLOUDINARY_API_SECRET')
+}
+
+# Validate Cloudinary credentials
+if not all(cloudinary_config.values()):
+    print("Warning: Some Cloudinary environment variables are missing!")
+    missing = [k for k, v in cloudinary_config.items() if not v]
+    print(f"Missing: {missing}")
+
+cloudinary.config(**cloudinary_config)
+
+# Ensure upload directory exists
+UPLOAD_FOLDER = 'Uploads'
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
 
 # === Device Setup ===
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -195,12 +220,37 @@ async def predict(file: UploadFile = File(...)):
         if not file.content_type.startswith('image/'):
             raise HTTPException(status_code=400, detail="File must be an image")
 
-        # Read and process image
-        contents = await file.read()
-        image = Image.open(io.BytesIO(contents)).convert('RGB')
+        # Generate a unique filename
+        file_extension = file.filename.split('.')[-1]
+        unique_filename = f"{uuid.uuid4()}.{file_extension}"
+        local_path = os.path.join(UPLOAD_FOLDER, unique_filename)
 
-        # Perform prediction
+        # Save file locally
+        contents = await file.read()
+        with open(local_path, 'wb') as f:
+            f.write(contents)
+
+        # Upload to Cloudinary
+        try:
+            upload_result = cloudinary.uploader.upload(
+                local_path,
+                folder="crop_disease_images",
+                resource_type="image"
+            )
+            cloudinary_url = upload_result['secure_url']
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Cloudinary upload failed: {str(e)}")
+        finally:
+            # Clean up local file
+            if os.path.exists(local_path):
+                os.remove(local_path)
+
+        # Process image for prediction
+        image = Image.open(io.BytesIO(contents)).convert('RGB')
         result = predict_single_image(image, resmamba_model, class_names, val_transform, device)
+
+        # Add Cloudinary URL to response
+        result['Image_URL'] = cloudinary_url
 
         return JSONResponse(content=result)
     except Exception as e:
@@ -213,5 +263,4 @@ async def root():
 
 # === Run the FastAPI app with Uvicorn ===
 if __name__ == "__main__":
-    import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=5003)
