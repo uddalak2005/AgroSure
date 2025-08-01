@@ -6,6 +6,7 @@ import torch.nn.functional as F
 from timm import create_model
 from fastapi import FastAPI, File, UploadFile, HTTPException
 from fastapi.responses import JSONResponse
+from pydantic import BaseModel
 import io
 import os
 import cloudinary
@@ -13,6 +14,7 @@ import cloudinary.uploader
 import cloudinary.api
 import uuid
 import uvicorn
+import requests
 
 # === FastAPI App ===
 app = FastAPI(
@@ -212,16 +214,72 @@ def predict_single_image(image: Image.Image, model, class_names, transform, devi
         "Damage_Report": damage_status
     }
 
-# === FastAPI Endpoint ===
+# === Pydantic Model for Cloudinary Request ===
+class CloudinaryRequest(BaseModel):
+    publicId: str
+    fileType: str
+    originalName: str
+
+# === Download and Predict Endpoint ===
+@app.post("/predict_from_cloudinary", response_model=dict)
+async def predict_from_cloudinary(request: CloudinaryRequest):
+    try:
+        # Validate fileType (case-insensitive)
+        valid_extensions = ['jpg', 'jpeg', 'jpe', 'jfif', 'png', 'gif', 'bmp', 'tiff', 'tif', 'webp', 'heic', 'heif', 'ico']
+        if request.fileType.lower() not in valid_extensions:
+            raise HTTPException(status_code=400, detail=f"Invalid file type. Supported: {valid_extensions}")
+
+        # Construct Cloudinary URL
+        cloudinary_url = cloudinary.CloudinaryImage(request.publicId).build_url(
+            cloud_name=cloudinary_config['cloud_name']
+        )
+
+        # Download image
+        local_path = os.path.join(UPLOAD_FOLDER, f"{uuid.uuid4()}.{request.fileType.lower()}")
+        try:
+            response = requests.get(cloudinary_url, stream=True)
+            if response.status_code != 200:
+                raise HTTPException(status_code=500, detail="Failed to download image from Cloudinary")
+            
+            with open(local_path, 'wb') as f:
+                for chunk in response.iter_content(chunk_size=8192):
+                    f.write(chunk)
+
+            # Open and process image
+            image = Image.open(local_path).convert('RGB')
+        except Exception as e:
+            raise HTTPException(status_code=500, detail=f"Error downloading or opening image: {str(e)}")
+        finally:
+            # Clean up local file
+            if os.path.exists(local_path):
+                os.remove(local_path)
+
+        # Perform prediction
+        result = predict_single_image(image, resmamba_model, class_names, val_transform, device)
+
+        # Add Cloudinary details to response
+        result['Image_URL'] = cloudinary_url
+        result['Original_Name'] = request.originalName
+        result['Public_ID'] = request.publicId
+
+        return JSONResponse(content=result)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error processing request: {str(e)}")
+
+# === Upload and Predict Endpoint ===
 @app.post("/predict", response_model=dict)
 async def predict(file: UploadFile = File(...)):
     try:
         # Validate file type
-        if not file.content_type.startswith('image/'):
-            raise HTTPException(status_code=400, detail="File must be an image")
+        valid_mime_types = [
+            'image/jpeg', 'image/png', 'image/gif', 'image/bmp', 'image/tiff',
+            'image/webp', 'image/heif', 'image/x-icon'
+        ]
+        if file.content_type not in valid_mime_types:
+            raise HTTPException(status_code=400, detail=f"File must be an image. Supported MIME types: {valid_mime_types}")
 
         # Generate a unique filename
-        file_extension = file.filename.split('.')[-1]
+        file_extension = file.filename.split('.')[-1].lower()
         unique_filename = f"{uuid.uuid4()}.{file_extension}"
         local_path = os.path.join(UPLOAD_FOLDER, unique_filename)
 
@@ -259,7 +317,7 @@ async def predict(file: UploadFile = File(...)):
 # === Root Endpoint ===
 @app.get("/")
 async def root():
-    return {"message": "Welcome to the Crop Disease Detection API. Use POST /predict to upload an image for disease detection."}
+    return {"message": "Welcome to the Crop Disease Detection API. Use POST /predict to upload an image or POST /predict_from_cloudinary to process an image from Cloudinary."}
 
 # === Run the FastAPI app with Uvicorn ===
 if __name__ == "__main__":
