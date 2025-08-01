@@ -358,27 +358,6 @@ const InsuranceClaim = ({ user, onBack }) => {
                         </div>
                       </div>
 
-                      <div>
-                        {/* Replaces Label component */}
-                        <label htmlFor="cropImage" className="text-agricultural-soil-brown text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 block">
-                          Crop Image
-                        </label>
-                        <div className="mt-2 border-2 border-dashed border-agricultural-stone-gray/30 rounded-lg p-3 sm:p-4">
-                          <input
-                            id="cropImage"
-                            type="file"
-                            accept=".jpg,.jpeg,.png"
-                            onChange={(e) => handleFileChange('cropImage', e.target.files?.[0] || null)}
-                            className="hidden" // Hides the default file input
-                          />
-                          {/* Custom styled label to act as the file input button */}
-                          <label htmlFor="cropImage" className="cursor-pointer flex items-center justify-center space-x-2 text-agricultural-stone-gray hover:text-agricultural-soil-brown text-center">
-                            <Upload className="h-4 w-4 sm:h-5 sm:w-5 flex-shrink-0" />
-                            <span className="text-xs sm:text-sm">{formData.cropImage ? formData.cropImage.name : 'Upload Crop Image'}</span>
-                          </label>
-                        </div>
-                      </div>
-
                       {/* Field Image Upload */}
                       <div>
                         {/* Replaces Label component */}
