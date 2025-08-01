@@ -31,7 +31,7 @@ class KioskController {
             })
 
         } catch (err) {
-            console.log(err.message);
+            console.error(err.message);
             res.status(400).json({
                 message: err.message
             })
@@ -100,7 +100,7 @@ class KioskController {
             });
 
         } catch (err) {
-            console.log(err);
+            console.error(err);
             return res.status(400).json({
                 message: err.message
             });
@@ -132,7 +132,7 @@ class KioskController {
             })
 
         } catch (err) {
-            console.log(err.message);
+            console.error(err.message);
             return res.status(400).json({
                 message: err.message
             })

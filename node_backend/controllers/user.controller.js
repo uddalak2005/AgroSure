@@ -46,7 +46,7 @@ class RegistrationController {
             });
         }
         catch (err) {
-            console.log(err.message);
+            console.error(err.message);
             res.status(400).json({
                 message: "Unable to register user",
                 error: err.message
