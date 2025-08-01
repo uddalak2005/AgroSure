@@ -32,7 +32,6 @@ const loanModel = new mongoose.Schema({
 
     loanTenure: {
         type: Number,
-        required: true,
         min: 1
     },
 

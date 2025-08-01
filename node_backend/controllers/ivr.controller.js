@@ -1,20 +1,20 @@
 import twilio from "twilio";
-import {
-    initSession,
-    getSession,
-    updateSession,
-    clearSession,
-} from '../utils/twilioSessionManager.util.js';
 import fs from "fs";
 import axios from "axios";
 import FormData from "form-data";
 import path from 'path';
-import {fileURLToPath} from 'url';
+import { fileURLToPath } from 'url';
+import client from "../utils/redisClient.util.js";
+import getAIInsights from "../services/getAIInsights.service.js";
+import User from "../models/user.model.js";
+import { v4 as uuidv4 } from 'uuid';
+import Crop from "../models/crop.model.js";
+import sendNotification from "../services/sendNotification.service.js"
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const {twiml} = twilio;
+const { twiml } = twilio;
 
 class IvrController {
 
@@ -36,7 +36,7 @@ class IvrController {
     async makeCall(req, res) {
         console.log("making call");
         try {
-            const {phone} = req.body;
+            const { phone } = req.body;
 
             const call = await this.client.calls.create({
                 from: this.twilioPhoneNumber,
@@ -49,6 +49,7 @@ class IvrController {
             return res.status(200).json(call);
 
         } catch (err) {
+            console.error(err.message)
             return res.status(500).json({
                 message: err.message,
             })
@@ -63,17 +64,19 @@ class IvrController {
         try {
             const callSid = req.body.CallSid;
 
-            let session = getSession(callSid);
+            let session = await client.hset(
+                callSid,
+                {
+                    lang: null,
+                    name: null,
+                    pincode: null,
+                    cropSuggestion: null,
+                    selectedCrop: null,
+                    landArea: null,
+                }
+            )
 
-            if (!session) {
-                console.log("Initializing new session for:", callSid);
-                initSession(callSid);
-                session = getSession(callSid);
-            } else {
-                console.log("Session already exists:", session);
-            }
-
-            console.log(getSession(callSid));
+            console.log(session);
 
             const gather = twimlResponse.gather({
                 input: 'dtmf',
@@ -83,7 +86,7 @@ class IvrController {
                 timeout: 5
             });
 
-            gather.play(`${process.env.BASE_URL}/audio/1_welcome_and_lang_select.wav`)
+            gather.play(`${process.env.BASE_URL}/audio/1_welcome_and_lang_select.wav`);
             // gather.play('https://api.twilio.com/cowbell.mp3');
 
             twimlResponse.say("We did not receive any input");
@@ -93,7 +96,7 @@ class IvrController {
             res.send(twimlResponse.toString());
 
         } catch (err) {
-            console.log(err.message);
+            console.error(err.message);
             twimlResponse.say("Sorry an application error has occurred");
             return res.status(400).json({
                 message: err.message,
@@ -109,8 +112,9 @@ class IvrController {
         try {
             const digit = req.body.Digits;
             const callSid = req.body.CallSid;
+            const session = await client.hgetall(callSid);
 
-            console.log(getSession(callSid));
+            console.log(session);
 
             console.log(digit, " ", callSid);
 
@@ -124,7 +128,9 @@ class IvrController {
             // Only update language if a valid digit was provided
             if (digit && langMap[digit]) {
                 const lang = langMap[digit];
-                updateSession(callSid, {lang});
+                //updateSession(callSid, {lang});
+
+                client.hset(callSid, { lang }); //Redis Update
 
                 twimlResponse.play(`${process.env.BASE_URL}/audio/${lang}/2_prompt_name_after_beep.wav`)
 
@@ -149,7 +155,7 @@ class IvrController {
             }
 
         } catch (err) {
-            console.log(err.message);
+            console.error(err.message);
             twimlResponse.say("Sorry an application error has occurred");
             return res.status(400).json({
                 message: err.message,
@@ -166,8 +172,10 @@ class IvrController {
 
         try {
             const callSid = req.body.CallSid;
-            console.log(getSession(callSid));
+            let session = await client.hgetall(callSid);
             const recordingUrl = req.body.RecordingUrl;
+
+            console.log(session);
 
             if (!recordingUrl) {
                 console.log("No audio heard");
@@ -178,8 +186,8 @@ class IvrController {
 
             }
 
-            //Get Call language
-            const lang = getSession(callSid)?.lang;
+            //Get Call Language
+            const lang = await client.hget(callSid, "lang");
 
             console.log("language from saveName : ", lang);
 
@@ -209,7 +217,7 @@ class IvrController {
 
             const tempDir = './temp';
             if (!fs.existsSync(tempDir)) {
-                fs.mkdirSync(tempDir, {recursive: true});
+                fs.mkdirSync(tempDir, { recursive: true });
             }
 
             const filename = `recording_${callSid || Date.now()}.wav`;
@@ -250,7 +258,7 @@ class IvrController {
             let confidence = null;
 
             if (sttResponse.data && sttResponse.data.success && sttResponse.data.text) {
-                console.log('transcribed', sttResponse.data.text.trim());
+
                 transcribedText = sttResponse.data.text.trim();
                 confidence = sttResponse.data.confidence;
 
@@ -261,9 +269,12 @@ class IvrController {
             fs.unlinkSync(tempFilePath);
 
 
-            //Storing the name in memory map
-            updateSession(callSid, {name: transcribedText});
-            console.log(getSession(callSid));
+            client.hset(callSid, { name: transcribedText });
+
+            session = await client.hgetall(callSid);
+
+            console.log(session);
+
 
             console.log("Moving to Pincode")
             //DTMF to capture pincode
@@ -276,14 +287,13 @@ class IvrController {
             });
 
 
-
             //To play the audio instruction to enter pincode
             gather.play(`${process.env.BASE_URL}/audio/${lang}/3_enter_pincode.wav`)
 
             return res.type('text/xml').send(twimlResponse.toString());
 
         } catch (err) {
-            console.log(err.message);
+            console.error(err.message);
             const errorTwiml = new twiml.VoiceResponse();
             errorTwiml.say("Sorry an application error has occurred");
             return res.type('text/xml').send(errorTwiml.toString());
@@ -298,8 +308,9 @@ class IvrController {
         try {
             const callSid = req.body.CallSid;
             const pincode = req.body.Digits;
-            const session = getSession(callSid);
-            const lang = session?.lang;
+
+            const session = await client.hgetall(callSid);
+            const lang = await client.hget(callSid, "lang");
 
             console.log("pincode", pincode);
             console.log("pincode length", pincode?.length);
@@ -326,20 +337,17 @@ class IvrController {
                 return res.type('text/xml').send(twimlResponse.toString());
             }
 
-            // Store valid pincode
-            updateSession(callSid, {pincode});
+
+            client.hset(callSid, { pincode }); //Redis
 
             twimlResponse.play(`${process.env.BASE_URL}/audio/${lang}/4_music_or_waiting.wav`);
-
-            // Play background processing music (10 seconds)
-            // twimlResponse.play(`${process.env.BASE_URL}/audio/processing_music.wav`);
 
             twimlResponse.redirect(`${process.env.BASE_URL}/ivr/fetchAndPlayCrops`);
 
             return res.type("text/xml").send(twimlResponse.toString());
 
         } catch (err) {
-            console.log(err.message);
+            console.error(err.message);
             twimlResponse.say("Sorry an application error has occurred");
             return res.status(500).json({
                 message: err.message
@@ -350,10 +358,11 @@ class IvrController {
     async fetchAndPlayCrops(req, res) {
         const twimlResponse = new twiml.VoiceResponse();
 
-        try{
+        try {
             const callSid = req.body.CallSid;
-            const session = getSession(callSid);
-            const { pincode, lang } = session || {};
+            const session = await client.hgetall(callSid);
+
+            const { lang, pincode } = session || {};
 
             console.log("pincode", pincode, lang);
 
@@ -369,22 +378,27 @@ class IvrController {
             console.log(locationData.data.lat);
             console.log(locationData.data.lon);
 
+            await client.hset(callSid, {
+                locationLat: locationData.data.lat,
+                locationLong: locationData.data.lon
+            })
+
             let cropList;
 
-            try{
+            try {
                 const cropResponse = await axios.get(`${process.env.FLASK_URL}/top-crops?lat=${locationData.data.lat}&lon=${locationData.data.lon}`);
 
-                if(!cropResponse.data){
+                if (!cropResponse.data) {
                     console.log(`Could not fetch crop data for ${locationData.data.lat}`);
                     throw new Error(`Could not fetch crop data for ${locationData.data.lat}`);
                 }
 
                 cropList = cropResponse.data.top_5_crops;
 
-            }catch(err){
-                console.log(err.message);
+            } catch (err) {
+                console.error(err.message);
                 return res.status(400).json({
-                    message : err.message
+                    message: err.message
                 })
             }
 
@@ -398,16 +412,18 @@ class IvrController {
                 timeout: 10
             });
 
+            gather.play(`${process.env.BASE_URL}/audio/${lang}/5_choose_crop.wav`);
+
             cropList.forEach((crop, index) => {
 
                 const cropAudio = encodeURIComponent(`${crop}.wav`);
                 const cropAudioURL = `${process.env.BASE_URL}/audio/${lang}/crop_names/${cropAudio}`;
 
-                console.log(`${index+1} cropAudio : ${cropAudioURL}`)
-                const instructionAudio = encodeURIComponent(`press_${index+1}.wav`);
+                console.log(`${index + 1} cropAudio : ${cropAudioURL}`)
+                const instructionAudio = encodeURIComponent(`press_${index + 1}.wav`);
 
                 const instructionURL = `${process.env.BASE_URL}/audio/${lang}/dtmf_instructions/${instructionAudio}`;
-                console.log(`${index+1} instructionURL : ${instructionURL}`)
+                console.log(`${index + 1} instructionURL : ${instructionURL}`)
 
                 const silenceAudioURL = `${process.env.BASE_URL}/audio/silence_1sec.wav`;
 
@@ -417,8 +433,8 @@ class IvrController {
 
             });
 
-            // Store crop list in session for later use
-            updateSession(callSid, {cropList});
+
+            client.hset(callSid, { cropSuggestion: JSON.stringify(cropList) });
 
             console.log("Processing complete, redirecting call...");
 
@@ -426,8 +442,8 @@ class IvrController {
 
             return res.type('text/xml').send(twimlResponse.toString());
 
-        }catch(err){
-            console.log(err);
+        } catch (err) {
+            console.error(err);
             return res.status(500).json({
                 message: err.message
             })
@@ -442,8 +458,10 @@ class IvrController {
         try {
             const callSid = req.body.CallSid;
             const selectedDigit = req.body.Digits;
-            const session = getSession(callSid);
-            const cropList = session?.cropList;
+
+            const session = await client.hgetall(callSid);
+            const dataOfCrops = session?.cropSuggestion;
+            const cropList = JSON.parse(dataOfCrops);
             const lang = session?.lang;
 
             console.log("Selected digit:", selectedDigit);
@@ -459,8 +477,17 @@ class IvrController {
             const digit = parseInt(selectedDigit, 10);
 
             if (isNaN(digit) || digit < 1 || digit > 5) {
-                twimlResponse.play("Sorry");
-                twimlResponse.redirect(`${process.env.BASE_URL}/ivr/fetchAndPlayCrops`);
+
+                const gather = twimlResponse.gather({
+                    input: 'dtmf',
+                    numDigits: 1,
+                    action: `${process.env.BASE_URL}/ivr/saveCropSelection`,
+                    method: 'POST',
+                    timeout: 10
+                });
+
+                gather.say("Sorry");
+
                 return res.type('text/xml').send(twimlResponse.toString());
             }
 
@@ -472,8 +499,8 @@ class IvrController {
                 return res.type('text/xml').send(twimlResponse.toString());
             }
 
-            // Store selected crop
-            updateSession(callSid, {selectedCrop: selectedCrop});
+
+            client.hset(callSid, { selectedCrop: selectedCrop });
 
             console.log("Selected crop:", selectedCrop);
 
@@ -492,7 +519,7 @@ class IvrController {
             return res.type('text/xml').send(twimlResponse.toString());
 
         } catch (err) {
-            console.log(err.message);
+            console.error(err.message);
             twimlResponse.say("Sorry an application error has occurred");
             return res.status(500).json({
                 message: err.message
@@ -508,35 +535,50 @@ class IvrController {
         try {
             const callSid = req.body.CallSid;
             const landArea = req.body.Digits;
-            const session = getSession(callSid);
+            const session = await client.hgetall(callSid);
             const lang = session?.lang;
+
+            const To = req.body.To //The number being currently called
 
             console.log("Land area:", landArea);
 
             if (!landArea) {
-                twimlResponse.say("Invalid land area");
-                twimlResponse.redirect(`${process.env.BASE_URL}/ivr/intro`);
+
+                // Set up gather for land area input
+                const gather = twimlResponse.gather({
+                    input: 'dtmf',
+                    numDigits: 3, // Assuming max 999 acres
+                    action: `${process.env.BASE_URL}/ivr/saveLandArea`,
+                    method: 'POST',
+                    timeout: 10
+                });
+
+                twimlResponse.play(`${process.env.BASE_URL}/audio/${lang}/6_enter_land_area.wav`);
+
                 return res.type('text/xml').send(twimlResponse.toString());
             }
 
-            // Store land area
-            updateSession(callSid, {landArea});
+            client.hset(callSid, { landArea });
 
             // Play processing done message
             twimlResponse.play(`${process.env.BASE_URL}/audio/${lang}/7_processing_done.wav`);
-
-            // Here you can add logic to save the complete data to database
-            console.log("Complete session data:", getSession(callSid));
-
-            // Clear session after processing
-            clearSession(callSid); // to be removed
-
             twimlResponse.hangup();
 
-            return res.type('text/xml').send(twimlResponse.toString());
+            const sessionData = await client.hgetall(callSid);
+
+            console.log("Complete session data:", sessionData);
+
+            res.type('text/xml').send(twimlResponse.toString());
+
+            setImmediate(async () => {
+                req.sessionData = sessionData;
+                req.To = To;
+                await this.SaveDataInDBAndMakeAPICall(req);
+            });
+
 
         } catch (err) {
-            console.log(err.message);
+            console.error(err.message);
             twimlResponse.say("Sorry an application error has occurred");
             return res.status(500).json({
                 message: err.message
@@ -545,56 +587,128 @@ class IvrController {
     }
 
 
-    async makeCallAfterAPIResponse(req, res) {
-        try{
-            console.log("making call after AI Response");
-            try {
-                const {phone} = req.body;
+    async SaveDataInDBAndMakeAPICall(req) {
+        try {
+            const {
+                lang,
+                name,
+                pincode,
+                cropSuggestion,
+                selectedCrop,
+                landArea,
+                locationLat,
+                locationLong
+            } = req.sessionData;
 
-                const call = await this.client.calls.create({
-                    from: this.twilioPhoneNumber,
-                    to: phone,
-                    url: `${process.env.BASE_URL}/ivr/loanRequest`,
-                });
+            const To = req.To;
 
-                console.log(call.sid);
+            const uid = uuidv4();
 
-                return res.status(200).json(call);
+            const isSmallFarmer = (parseInt(landArea) < 5);
+            const newUser = await User.create({
+                uid,
+                name,
+                phone: To,
+                totalLand: landArea,
+                isSmallFarmer,
+                location: {
+                    lat: locationLat,
+                    long: locationLong
+                },
+                crops: [selectedCrop]
+            });
 
-            } catch (err) {
-                return res.status(500).json({
-                    message: err.message,
-                })
+            const responseFromAi = await getAIInsights.predictCropScore(selectedCrop, locationLat, locationLong);
+
+            console.log(responseFromAi);
+
+            if (!responseFromAi || responseFromAi.error) {
+                console.log("Unable to process from AI");
+                return false
             }
 
-        }catch(err){
+            const cropRecord = await Crop.create(
+                {
+                    uid,
+                    cropName: selectedCrop,
+                    location: {
+                        lat: locationLat,
+                        long: locationLong
+                    },
+                    acresOfLand: landArea,
+                    predictedYieldKgPerAcre: responseFromAi.input_crop_analysis.predicted_yield.kg_per_acre,
+                    yieldCategory: responseFromAi.input_crop_analysis.yield_cateory,
+                    soilHealthScore: responseFromAi.soil_health.score,
+                    soilHealthCategory: responseFromAi.soil_health.category,
+                    climateScore: responseFromAi.climate_score,
+                    suggestedCrops: responseFromAi.crop_priority_list.slice(0, 5).map(crop => ({
+                        cropName: crop.crop,
+                        predictedYieldKgPerAcre: crop.predicted_yield.kg_per_acre
 
+                    }))
+                }
+            );
+
+            console.log(cropRecord);
+
+
+
+            //SMS the results to the user.
+            const sms = await sendNotification.sendCropAnalysisSMS(responseFromAi, To, lang);
+
+            console.log(sms);
+
+            if (
+                !sms
+            ) {
+                return false;
+            }
+
+            //Make Call After Sending SMS
+            const call = await this.client.calls.create({
+                from: this.twilioPhoneNumber,
+                to: To,
+                url: `${process.env.BASE_URL}/ivr/loanRequest?uid=${uid}&lang=${lang}`,
+            });
+
+            console.log(call.sid);
+
+            return {
+                newUser,
+                cropRecord
+            };
+
+        } catch (err) {
+            console.error(err.message);
+            return false
         }
     }
 
-    //Language Choice is still unde development for this part
+
     async askForLoanRequest(req, res) {
+        console.log("Loan Request");
         const twimlResponse = new twiml.VoiceResponse();
-        try{
-            const callSid = req.body.CallSid;
+        try {
+
+            const { uid, lang } = req.query;
 
             const gather = twimlResponse.gather({
                 input: 'dtmf',
                 numDigits: 1,
-                action: `${process.env.BASE_URL}/ivr/language`,
+                action: `${process.env.BASE_URL}/ivr/confirmLoan?uid=${uid}&lang=${lang}`,
                 method: 'POST',
                 timeout: 5
             });
 
-            gather.play(`${process.env.BASE_URL}/audio/8_ask_for_loan_request.wav`);
+            gather.play(`${process.env.BASE_URL}/audio/${lang}/8_ask_for_loan_request.wav`);
 
             twimlResponse.say("We did not receive any input");
             twimlResponse.redirect(`${process.env.BASE_URL}/ivr/intro`);
 
             res.type('text/xml');
-            res.send(twimlResponse.toString());
-        }catch(err){
-            console.log(err.message);
+            return res.send(twimlResponse.toString());
+        } catch (err) {
+            console.error(err.message);
             twimlResponse.say("Sorry an application error has occurred");
             return res.status(400).json({
                 message: err.message,
@@ -603,50 +717,120 @@ class IvrController {
     }
 
     async confirmLoan(req, res) {
-        console.log("languageSelection");
+        console.log("confirm Loan");
         const twimlResponse = new twiml.VoiceResponse();
 
         try {
             const digit = req.body.Digits;
             const callSid = req.body.CallSid;
-
-            console.log(getSession(callSid));
+            const { uid, lang } = req.query;
 
             console.log(digit, " ", callSid);
 
-            if(!digit || digit !== '1' || digit !== '2'){
+            const parsedDigit = parseInt(digit);
+
+            console.log(parsedDigit);
+
+            if (!parsedDigit || ![1, 2].includes(parsedDigit)) {
                 const gather = twimlResponse.gather({
                     input: 'dtmf',
                     numDigits: 6,
-                    action: `${process.env.BASE_URL}/ivr/confirmLoan`,
+                    action: `${process.env.BASE_URL}/ivr/confirmLoan?uid=${uid}&lang=${lang}`,
                     method: 'POST',
                     timeout: 10
                 })
 
                 gather.say("Sorry");
-                gather.play(`${process.env.BASE_URL}/audio/8_ask_for_loan_request.wav`); //language to be set
+                gather.play(`${process.env.BASE_URL}/audio/${lang}/8_ask_for_loan_request.wav`); //language to be set
 
                 // Fallback if no input
                 twimlResponse.say("We did not receive your input");
-                twimlResponse.redirect(`${process.env.BASE_URL}/ivr/askForLoanRequest`);
+                twimlResponse.redirect(`${process.env.BASE_URL}/ivr/loanRequest?uid=${uid}&lang=${lang}`);
 
                 return res.type('text/xml').send(twimlResponse.toString());
             }
 
-            if(digit === '1'){
-                //Sent mail
-            }else{
-                //hangup
+
+
+            if (parsedDigit === 1) {
+
+                const gather = twimlResponse.gather({
+                    input: 'dtmf',
+                    numDigits: 8,
+                    action: `${process.env.BASE_URL}/ivr/askForLoanAmount?uid=${uid}&lang=${lang}`,
+                    method: 'POST',
+                    timeout: 10
+                });
+
+                gather.play(`${process.env.BASE_URL}/audio/${lang}/8_1_ask_for_loan_amount.wav`);
+
+                return res.type('text/xml').send(twimlResponse.toString());
+
+            } else {
+                twimlResponse.play(`${process.env.BASE_URL}/audio/${lang}/9_disagree_for_loan.wav`)
+                twimlResponse.hangup();
+
+                return res.type('text/xml').send(twimlResponse.toString());
             }
 
-        } catch (err){
-            console.log(err.message);
+        } catch (err) {
+            console.error(err.message);
             twimlResponse.say("Sorry an application error has occurred");
             return res.status(400).json({
                 message: err.message,
             })
         }
     }
+
+    async askForLoanAmount(req, res) {
+        console.log("Loan Amount");
+        const twimlResponse = new twiml.VoiceResponse();
+        try {
+            const digit = req.body.Digits;
+            const { uid, lang } = req.query;
+
+            const cropRecord = await Crop.findOne({
+                uid: uid
+            });
+
+            if (!cropRecord) {
+                console.error("Crop Record not found");
+                twimlResponse.say("Sorry Crop Record not found");
+                twimlResponse.hangup();
+                return res.type('text/xml').send(twimlResponse.toString());
+            }
+
+            console.log(cropRecord._id);
+
+            twimlResponse.play(`${process.env.BASE_URL}/audio/${lang}/9_agree_for_loan.wav`)
+            twimlResponse.hangup();
+
+            res.type('text/xml').send(twimlResponse.toString());
+
+            setImmediate(async () => {
+                const loanResponse = await axios.post(`${process.env.BASE_URL}/loan/submit/${cropRecord._id}`, {
+                    uid,
+                    loanPurpose: "Agriculture",
+                    requestedAmount: digit,
+                    loanTenure: 3
+                });
+
+                if (!loanResponse) {
+                    console.error("Loan Record not found");
+                    twimlResponse.say("Sorry Record Record not found");
+                    twimlResponse.hangup();
+                    return res.type('text/xml').send(twimlResponse.toString());
+                }
+            });
+
+            return;
+
+        } catch (err) {
+            console.error(err.message);
+            return;
+        }
+    }
+
 }
 
 export default new IvrController();

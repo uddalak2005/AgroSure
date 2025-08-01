@@ -3,6 +3,7 @@ import app from "./app.js";
 import dotenv from "dotenv";
 import cluster from "node:cluster";
 import os from "os";
+import morgan from 'morgan';
 
 const numCPU = os.cpus().length;
 

@@ -7,6 +7,7 @@ import Bank from "../models/bank.model.js";
 class LoanController {
     async submitLoan(req, res) {
         try {
+            console.log("Loan Controller");
             const { id } = req.params;
 
             if (!id) {

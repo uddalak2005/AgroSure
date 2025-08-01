@@ -19,4 +19,10 @@ router.post("/saveCropSelection", IvrController.saveCropSelection);
 
 router.post("/saveLandArea", IvrController.saveLandArea);
 
+router.post("/loanRequest", IvrController.askForLoanRequest);
+
+router.post("/confirmLoan", IvrController.confirmLoan);
+
+router.post("/askForLoanAmount", IvrController.askForLoanAmount);
+
 export default router;
