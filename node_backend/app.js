@@ -7,7 +7,7 @@ import ivrRoutes from "./routes/ivr.route.js";
 import kioskRoutes from "./routes/kiosk.route.js";
 import cors from "cors";
 import path from "path";
-import { fileURLToPath} from "url";
+import { fileURLToPath } from "url";
 import morgan from 'morgan';
 import client from 'prom-client';
 import responseTime from "response-time";
@@ -16,31 +16,12 @@ import logger from './logger.js';
 console.log = (...args) => logger.info(args.join(" "));
 console.error = (...args) => logger.error(args.join(" "));
 
-
-const collectDefaultMetrics = client.collectDefaultMetrics;
-collectDefaultMetrics({ register : client.register});
-
 const app = express();
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
-app.use(cors({
-  origin: "*",
-  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
+const collectDefaultMetrics = client.collectDefaultMetrics;
+collectDefaultMetrics({ register: client.register });
 
-app.use(morgan(':remote-addr :method :url :status'),{
-  stream: {
-    write: (message) => logger.info(message.trim())
-  }
-}); //logger
-
-app.get('/favicon.ico', (req, res) => res.status(204).end()); //To bypass favicon check by browsers
-
-app.use(express.json());
-app.use(express.urlencoded({extended : true}));
 
 const reqResTime = new client.Histogram({
   name: "http_express_req_res_time",
@@ -55,7 +36,7 @@ const totalRequestCounter = new client.Counter({
 });
 
 app.use(responseTime((req, res, time) => {
-  if(req.url !== "/metrics"){
+  if (req.url !== "/metrics") {
     totalRequestCounter.inc();
   }
   reqResTime.labels({
@@ -63,8 +44,31 @@ app.use(responseTime((req, res, time) => {
     method: req.method,
     status_code: res.statusCode
   })
-  .observe(time);
+    .observe(time);
 }))
+
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
+
+app.use(morgan(':remote-addr :method :url :status', {
+  stream: {
+    write: (message) => logger.info(message.trim())
+  },
+  skip: (req, res) => req.url === '/metrics'
+}));
+
+app.get('/favicon.ico', (req, res) => res.status(204).end());
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
 
 //To Server audio TTS files
 app.use('/audio', express.static(path.join(__dirname, 'public/audio')));
@@ -77,10 +81,10 @@ app.use("/ivr", ivrRoutes);
 app.use("/kiosk", kioskRoutes);
 
 app.get("/", (req, res) => {
-    res.send("AgriSure Backend");
+  res.send("AgriSure Backend");
 });
 
-app.get("/metrics", async(req, res) => {
+app.get("/metrics", async (req, res) => {
   res.setHeader("Content-Type", client.register.contentType);
   const metrics = await client.register.metrics();
   res.send(metrics);

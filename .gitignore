@@ -17,3 +17,5 @@ kisan_sathi_service/.env
 resmamba/.env
 resmamba/.venv
 Test_Image
+docker-compose.yaml
+docker-compose-dev.yaml
