@@ -30,6 +30,10 @@ class IvrController {
         this.savePinCode = this.savePinCode.bind(this);
         this.saveCropSelection = this.saveCropSelection.bind(this);
         this.saveLandArea = this.saveLandArea.bind(this);
+        this.SaveDataInDBAndMakeAPICall = this.SaveDataInDBAndMakeAPICall.bind(this);
+        this.askForLoanRequest = this.askForLoanRequest.bind(this);
+        this.confirmLoan = this.confirmLoan.bind(this);
+        this.askForLoanAmount = this.askForLoanAmount.bind(this);
     }
 
 
@@ -788,6 +792,7 @@ class IvrController {
         try {
             const digit = req.body.Digits;
             const { uid, lang } = req.query;
+            const To = req.body.To;
 
             const cropRecord = await Crop.findOne({
                 uid: uid
@@ -821,6 +826,15 @@ class IvrController {
                     twimlResponse.hangup();
                     return res.type('text/xml').send(twimlResponse.toString());
                 }
+
+                const messageBody = "Hello User! Your loan request have been successfully forwarded to nearby banks.";
+
+                const message = await client.messages.create({
+                    body: messageBody,
+                    from: this.twilioPhoneNumber,
+                    to: To,
+                });
+
             });
 
             return;

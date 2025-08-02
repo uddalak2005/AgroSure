@@ -1,5 +1,6 @@
 import uploadToCloudinary from '../services/cloudinary.service.js';
 import fs from 'fs';
+import path from 'path';
 
 async function handleMultipleUploads(req, resourceType = 'raw') {
     if (!req.files || Object.keys(req.files).length === 0) return [];

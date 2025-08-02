@@ -8,11 +8,11 @@ import { Type } from 'lucide-react';
 
 export const AddFarmer = () => {
 
-    const navigate = useNavigate();
-    const {user, isloggedIn} = useAuth()
-    const [formData, setFormData] = useState({
-    uid : '',
-    kioskUid:  user?.id, 
+  const navigate = useNavigate();
+  const { user, isloggedIn } = useAuth()
+  const [formData, setFormData] = useState({
+    uid: '',
+    kioskUid: user?.id,
     name: '',
     phone: '',
     email: '',
@@ -21,53 +21,60 @@ export const AddFarmer = () => {
     locationLat: '',
     locationLong: '',
     crops: '',
-    aadhar : '',
+    aadhar: '',
   });
 
-  const [loading,setloading] = useState(false);
-  const handleSubmit = async() => {
+  const [loading, setloading] = useState(false);
+  const handleSubmit = async () => {
     setloading(true);
     const Farmeruid = await getfarmerUid(formData.email, formData.password);
-      // Mock registration
-      const payload = {
-        uid : Farmeruid,
-        kioskUid: user.id,
-        aadhar: formData.aadhar || '1234-5678-9012',
-        name: formData.name || "Souherdya Sarkar",
-        email : formData.email || "souherdyasarkar@gmail.com",
-        totalLand: formData.totalLand || '5 acre',
-        locationLat: formData.locationLat || '22.572645',
-        locationLong: formData.locationLong || '88.363892',
-        crops: formData.crops.split(',').map(crop => crop.trim()) || ['Rice','Wheat','Paddy'],
-        phone: formData.phone || 8910169299,
-      }
+    // Mock registration
+    const payload = {
+      uid: Farmeruid,
+      kioskUid: user.id,
+      aadhar: formData.aadhar || '1234-5678-9012',
+      name: formData.name || "Souherdya Sarkar",
+      email: formData.email || "souherdyasarkar@gmail.com",
+      totalLand: formData.totalLand || '5 acre',
+      locationLat: formData.locationLat || '22.572645',
+      locationLong: formData.locationLong || '88.363892',
+      crops: formData.crops.split(',').map(crop => crop.trim()) || ['Rice', 'Wheat', 'Paddy'],
+      phone: formData.phone || 8910169299,
+    }
 
-      console.log("payload : ", payload);
+    console.log("payload : ", payload);
 
-      try{
-        
-      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/kiosk/farmer/register`,{
+    try {
+
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/kiosk/farmer/register`, {
         method: 'POST',
-         headers: {
-        'Content-Type': 'application/json', // <-- This tells backend you're sending JSON
+        headers: {
+          'Content-Type': 'application/json', // <-- This tells backend you're sending JSON
         },
         body: JSON.stringify(payload)
       });
-      if(response.ok){
+      if (response.ok) {
+        const data = await response.json(); // ✅ important step
         console.log("User data set to DB");
+        console.log(data);
+
+        localStorage.setItem("uid", data.user.uid);
+
         setloading(false);
-        // window.location.href = `http://localhost:5174/dashboard/${Farmeruid}`;
+
+        // redirect user
+        window.location.href = `${import.meta.env.VITE_AGROSURE_LOGIN_URL}/dashboard/${data.user.uid}`;
       }
 
       const data = await response.json();
       console.log(data);
-  }
-  catch(err){
-    console.log(err);
-  }
+    }
+    catch (err) {
+      console.log(err);
+    }
 
-   
-}
+
+  }
 
 
   const getLocationAndUpdate = () => {
@@ -96,215 +103,215 @@ export const AddFarmer = () => {
     }));
   };
 
-  const getfarmerUid = async(email,password) => {
+  const getfarmerUid = async (email, password) => {
     const userCreds = await createUserWithEmailAndPassword(auth, email, password);
 
-    if(userCreds.user) {
-        console.log("Registration succesfull");
-        return userCreds.user.uid;
+    if (userCreds.user) {
+      console.log("Registration succesfull");
+      return userCreds.user.uid;
     }
 
   }
 
   return (
     <div className='w-[100%] h-[100%] flex items-center justify-center p-2 lg:p-4'>
-    <div className="w-[95%] lg:w-[70%] overflow-auto bg-background flex items-center justify-center">
-      <div className="w-full">
-        <div className="bg-card rounded-xl shadow-lg border border-border p-8">
-          <div className="text-center mb-6">
-            <h1 className="text-2xl font-bold text-foreground mb-2">Add New Farmer</h1>
-            <p className="text-muted-foreground">Register a new Farmer under your jurisdiction</p>
-          </div>
-
-          <form className="space-y-4">
-            <div>
-              <label 
-                htmlFor="name" 
-                className="block text-sm font-medium text-foreground mb-2"
-              >
-                Full Name
-              </label>
-              <input
-                type="text"
-                id="name"
-                name="name"
-                value={formData.name}
-                onChange={handleInputChange}
-                required
-                className="w-full px-3 py-2 bg-background border border-input rounded-lg 
-                focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent 
-                text-foreground placeholder:text-muted-foreground transition-colors"
-                placeholder="Enter agent's full name"
-              />
+      <div className="w-[95%] lg:w-[70%] overflow-auto bg-background flex items-center justify-center">
+        <div className="w-full">
+          <div className="bg-card rounded-xl shadow-lg border border-border p-8">
+            <div className="text-center mb-6">
+              <h1 className="text-2xl font-bold text-foreground mb-2">Add New Farmer</h1>
+              <p className="text-muted-foreground">Register a new Farmer under your jurisdiction</p>
             </div>
 
-            <div className='flex flex-col lg:flex-row gap-4'>
+            <form className="space-y-4">
+              <div>
+                <label
+                  htmlFor="name"
+                  className="block text-sm font-medium text-foreground mb-2"
+                >
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 py-2 bg-background border border-input rounded-lg 
+                focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent 
+                text-foreground placeholder:text-muted-foreground transition-colors"
+                  placeholder="Enter agent's full name"
+                />
+              </div>
+
+              <div className='flex flex-col lg:flex-row gap-4'>
 
                 <div className='w-full'>
 
-              <label 
-                htmlFor="email" 
-                className="block text-sm font-medium text-foreground mb-2"
-              >
-                Email Address
-              </label>
-              <input
-                type="email"
-                id="email"
-                name="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                required
-                className="w-full px-3 py-2 bg-background border border-input rounded-lg 
+                  <label
+                    htmlFor="email"
+                    className="block text-sm font-medium text-foreground mb-2"
+                  >
+                    Email Address
+                  </label>
+                  <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 bg-background border border-input rounded-lg 
                 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent 
                 text-foreground placeholder:text-muted-foreground transition-colors"
-                placeholder="agent@example.com"
-              />
-              </div>
+                    placeholder="agent@example.com"
+                  />
+                </div>
 
-              <div className='w-full'>
-              <label 
-                htmlFor="password" 
-                className="block text-sm font-medium text-foreground mb-2"
-              >
-                Set password
-              </label>
-              <input
-                type="password"
-                id="password"
-                name="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                required
-                className="w-full px-3 py-2 bg-background border border-input rounded-lg 
+                <div className='w-full'>
+                  <label
+                    htmlFor="password"
+                    className="block text-sm font-medium text-foreground mb-2"
+                  >
+                    Set password
+                  </label>
+                  <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 bg-background border border-input rounded-lg 
                 focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent 
                 text-foreground placeholder:text-muted-foreground transition-colors"
-                placeholder="Password"
-              />
+                    placeholder="Password"
+                  />
+                </div>
+
               </div>
 
-            </div>
+              <div>
 
-            <div>
-              
-            </div>
+              </div>
 
-            <div>
-              <label 
-                htmlFor="phone" 
-                className="block text-sm font-medium text-foreground mb-2"
-              >
-                Phone Number
-              </label>
-              <input
-                type="tel"
-                id="phone"
-                name="phone"
-                value={formData.phone}
-                onChange={handleInputChange}
-                required
-                className="w-full px-3 py-2 bg-background border border-input 
+              <div>
+                <label
+                  htmlFor="phone"
+                  className="block text-sm font-medium text-foreground mb-2"
+                >
+                  Phone Number
+                </label>
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  value={formData.phone}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 py-2 bg-background border border-input 
                 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring 
                 focus:border-transparent text-foreground placeholder:text-muted-foreground transition-colors"
-                placeholder="+1 (555) 000-0000"
-              />
-            </div>
-            
-            <div>
-              <label 
-                htmlFor="aadhar" 
-                className="block text-sm font-medium text-foreground mb-2"
-              >
-               Aadhar Number
-              </label>
-              <input
-                type="text"
-                id="aadhar"
-                name="aadhar"
-                value={formData.aadhar}
-                onChange={handleInputChange}
-                required
-                className="w-full px-3 py-2 bg-background border border-input 
+                  placeholder="+1 (555) 000-0000"
+                />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="aadhar"
+                  className="block text-sm font-medium text-foreground mb-2"
+                >
+                  Aadhar Number
+                </label>
+                <input
+                  type="text"
+                  id="aadhar"
+                  name="aadhar"
+                  value={formData.aadhar}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-3 py-2 bg-background border border-input 
                 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring 
                 focus:border-transparent text-foreground placeholder:text-muted-foreground transition-colors"
-                placeholder="e.g. 1234-5678-9012"
-              />
-            </div>
+                  placeholder="e.g. 1234-5678-9012"
+                />
+              </div>
 
-            <div className='flex gap-4'>
-            <div className='w-full'>
-              <label 
-                htmlFor="crops" 
-                className="block text-sm font-medium text-foreground mb-2"
-              >
-                Crops
-              </label>
-              <input
-                type="text"
-                id="crops"
-                name="crops"
-                value={formData.crops}
-                onChange={(e) => setFormData(prev => ({ ...prev, crops: e.target.value }))}
-                required
-                className="w-full px-3 py-2 bg-background border border-input 
+              <div className='flex gap-4'>
+                <div className='w-full'>
+                  <label
+                    htmlFor="crops"
+                    className="block text-sm font-medium text-foreground mb-2"
+                  >
+                    Crops
+                  </label>
+                  <input
+                    type="text"
+                    id="crops"
+                    name="crops"
+                    value={formData.crops}
+                    onChange={(e) => setFormData(prev => ({ ...prev, crops: e.target.value }))}
+                    required
+                    className="w-full px-3 py-2 bg-background border border-input 
                 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring 
                 focus:border-transparent text-foreground placeholder:text-muted-foreground transition-colors"
-                placeholder="e.g. Rice, Wheat, Paddy"
-              />
-            </div>
+                    placeholder="e.g. Rice, Wheat, Paddy"
+                  />
+                </div>
 
-            <div className='w-full'>
-              <label 
-                htmlFor="address" 
-                className="block text-sm font-medium text-foreground mb-2"
-              >
-                Total land(Acres)
-              </label>
-              <input
-              type='number'
-                id="totalLand"
-                name="totalLand"
-                value={formData.totalLand}
-                onChange={handleInputChange}
-                required
-                rows={3}
-                className="w-full px-3 py-2 bg-background border border-input 
+                <div className='w-full'>
+                  <label
+                    htmlFor="address"
+                    className="block text-sm font-medium text-foreground mb-2"
+                  >
+                    Total land(Acres)
+                  </label>
+                  <input
+                    type='number'
+                    id="totalLand"
+                    name="totalLand"
+                    value={formData.totalLand}
+                    onChange={handleInputChange}
+                    required
+                    rows={3}
+                    className="w-full px-3 py-2 bg-background border border-input 
                 rounded-lg focus:outline-none focus:ring-2 focus:ring-ring 
                 focus:border-transparent text-foreground placeholder:text-muted-foreground transition-colors"
-                placeholder="Enter total land"
-              />
-            </div>
-            </div>
+                    placeholder="Enter total land"
+                  />
+                </div>
+              </div>
 
-            <div className='flex justify-left items-center pl-2'>
-            <input type='checkbox' className='w-4 h-4 text-green-500 focus:ring-green-500 rounded'
-                onChange={(e) => {
-            if (e.target.checked) {
-              getLocationAndUpdate();
-            }
-          }}
-            />
-              <label 
-                htmlFor="location" 
-                className="block text-sm font-medium text-foreground ml-4"
-              >
-                Take my location
-              </label>
-              
-            </div>
-            {(formData.locationLat && formData.locationLong) && (
+              <div className='flex justify-left items-center pl-2'>
+                <input type='checkbox' className='w-4 h-4 text-green-500 focus:ring-green-500 rounded'
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      getLocationAndUpdate();
+                    }
+                  }}
+                />
+                <label
+                  htmlFor="location"
+                  className="block text-sm font-medium text-foreground ml-4"
+                >
+                  Take my location
+                </label>
+
+              </div>
+              {(formData.locationLat && formData.locationLong) && (
                 <p className="text-xs text-agricultural-stone-gray">
-                Location captured: {formData.locationLat}, {formData.locationLong}
+                  Location captured: {formData.locationLat}, {formData.locationLong}
                 </p>
-            )}
+              )}
 
-            <div className="flex gap-4">
-              <button
-                type="button"
-                className="flex-1 px-4 py-3 bg-secondary text-secondary-foreground
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  className="flex-1 px-4 py-3 bg-secondary text-secondary-foreground
                  rounded-lg hover:bg-secondary/80 focus:outline-none focus:ring-2 
                  focus:ring-ring transition-colors font-medium"
-                onClick={() => setFormData({
+                  onClick={() => setFormData({
                     uid: '',
                     name: '',
                     email: '',
@@ -314,33 +321,33 @@ export const AddFarmer = () => {
                     locationLat: '',
                     locationLong: '',
                     crops: '',
-                })
-                }>
-                Cancel
-              </button>
-              {loading ? <button
-                type="button"
-                className="flex-1 p-3 lg:px-4 lg:py-3 bg-primary/40 text-primary-foreground rounded-lg 
+                  })
+                  }>
+                  Cancel
+                </button>
+                {loading ? <button
+                  type="button"
+                  className="flex-1 p-3 lg:px-4 lg:py-3 bg-primary/40 text-primary-foreground rounded-lg 
                 hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring 
                 transition-colors font-medium lg:text-base text-sm"
                 >
-                Registering...
-              </button>
-              :
-              <button
-                type="button"
-                className="flex-1 p-3 lg:px-4 lg:py-3 bg-primary text-primary-foreground rounded-lg 
+                  Registering...
+                </button>
+                  :
+                  <button
+                    type="button"
+                    className="flex-1 p-3 lg:px-4 lg:py-3 bg-primary text-primary-foreground rounded-lg 
                 hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring 
                 transition-colors font-medium lg:text-base text-sm"
-                onClick={handleSubmit}>
-                Register Farmer
-              </button>
-              }
-            </div>
-          </form>
+                    onClick={handleSubmit}>
+                    Register Farmer
+                  </button>
+                }
+              </div>
+            </form>
+          </div>
         </div>
       </div>
-    </div>
     </div>
   );
 };

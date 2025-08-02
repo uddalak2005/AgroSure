@@ -24,10 +24,6 @@ class InsuranceController {
                 fileMetaMap.damageImage && fileMetaMap.damageImage.length > 0
                     ? fileMetaMap.damageImage[0]
                     : null;
-            // const cropImage =
-            //     fileMetaMap.cropImage && fileMetaMap.cropImage.length > 0
-            //         ? fileMetaMap.cropImage[0]
-            //         : null;
 
             const fieldImage =
                 fileMetaMap.fieldImage && fileMetaMap.fieldImage.length > 0
