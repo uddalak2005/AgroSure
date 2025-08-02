@@ -4,43 +4,41 @@ collections.MutableMapping = MutableMapping  # Patch for deprecated MutableMappi
 
 import os
 import shutil
-os.environ["TF_ENABLE_ONEDNN_OPTS"] = "0"  # Suppress TensorFlow warnings
+import json
+import logging
+from contextlib import asynccontextmanager
+from typing import Dict
 
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain_community.vectorstores import Chroma
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+
+from langchain.chat_models import init_chat_model
 from langchain_core.documents import Document
 from langchain_core.prompts import PromptTemplate
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_community.vectorstores import Chroma
+from langchain_huggingface import HuggingFaceEmbeddings
 from langchain.chains import RetrievalQA
-from langchain_google_genai import ChatGoogleGenerativeAI
-import json
-import logging
-import config  # Ensure config.py has GEMINI_API_KEY
-from typing import Dict
+
+import config  # Ensure config.py has GROQ_API_KEY
+
+# Set environment variable for Groq API key
+os.environ["GROQ_API_KEY"] = config.GROQ_API_KEY
 
 # Setup logging
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
-
-# FastAPI app
-app = FastAPI(title="Crop Health Assistant API")
-
-# Pydantic model for request body
-class QueryRequest(BaseModel):
-    query: str
-    session_id: str = "default"
 
 # Global variables for RAG components
 rag_chain = None
 retriever = None
 session_states: Dict[str, str] = {}  # Store last_disease per session_id
 
-# Initialize RAG pipeline at startup
-@app.on_event("startup")
-async def startup_event():
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
     global rag_chain, retriever
     persist_directory = "./chroma_crop_rag"
 
@@ -85,24 +83,30 @@ async def startup_event():
         logger.error("ChromaDB/Embedding error: %s", str(e))
         raise
 
-    # Gemini LLM
+    # Groq LLM
     try:
-        llm = ChatGoogleGenerativeAI(
-            model="gemini-1.5-flash",
-            google_api_key=config.GEMINI_API_KEY,
-            temperature=0.7
+        llm = init_chat_model(
+            "llama3-8b-8192",
+            model_provider="groq",
+            temperature=0.5
         )
-        logger.debug("Gemini LLM initialized")
+        logger.debug("Groq LLM initialized")
     except Exception as e:
-        logger.error("Gemini LLM initialization error: %s", str(e))
+        logger.error("Groq LLM initialization error: %s", str(e))
         raise
 
-    # Setup RAG Chain
+    # Prompt Template
     prompt_template = PromptTemplate(
         input_variables=["context", "question"],
         template="""
-        You're a friendly agricultural expert helping farmers with crop health. Answer in a warm, conversational tone, like you're chatting with a neighbor. Keep it clear, engaging, and avoid overly technical terms. Use the provided context from the knowledge base to ensure accuracy. If the question is a follow-up (e.g., 'how to treat them?', 'how to fix it?', 'what medicines should I use?'), assume it refers to the previously discussed disease or crop (e.g., Early blight in Potato) unless specified otherwise. If the context doesn't cover the question, provide a practical, general response with actionable tips.
-
+        You're a friendly agricultural expert helping farmers with crop health.
+        Answer in a warm, conversational tone, like you're chatting with a neighbor.
+        Keep it clear, engaging, and avoid overly technical terms.
+        Use the provided context from the knowledge base to ensure accuracy.
+        If the question is a follow-up (e.g., 'how to treat them?', 'how to fix it?', 'what medicines should I use?'),
+        assume it refers to the previously discussed disease or crop (e.g., Early blight in Potato) unless specified otherwise.
+        If the context doesn't cover the question, provide a practical, general response with actionable tips.
+        make sure the aize of the answer is not more than 100 words.
         Context: {context}
 
         Question: {question}
@@ -110,8 +114,9 @@ async def startup_event():
         Answer:
         """
     )
+
+    # RAG Chain
     try:
-        global rag_chain
         rag_chain = RetrievalQA.from_chain_type(
             llm=llm,
             retriever=retriever,
@@ -123,7 +128,29 @@ async def startup_event():
         logger.error("RAG chain initialization error: %s", str(e))
         raise
 
-# Endpoint to handle queries
+    yield  # FastAPI is now running
+
+
+# Initialize FastAPI with lifespan
+app = FastAPI(title="Crop Health Assistant API", lifespan=lifespan)
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods
+    allow_headers=["*"],  # Allows all headers
+)
+
+
+# Pydantic request model
+class QueryRequest(BaseModel):
+    query: str
+    session_id: str = "default"
+
+
+# Query endpoint
 @app.post("/query")
 async def query_crop_health(request: QueryRequest):
     global session_states
@@ -137,27 +164,33 @@ async def query_crop_health(request: QueryRequest):
     # Handle follow-up queries
     modified_query = query
     last_disease = session_states.get(session_id)
-    if last_disease and query.lower() in ["how to treat them?", "how to fix it?", "how to manage it?", "what medicines should i use?"]:
+    if last_disease and query.lower() in [
+        "how to treat them?", "how to fix it?",
+        "how to manage it?", "what medicines should i use?"
+    ]:
         modified_query = f"What medicines or treatments for {last_disease}?"
 
     try:
         response = rag_chain.invoke({"query": modified_query})["result"]
-        # Update session state
+        # Simple heuristic to update last disease
         if "blight" in query.lower() or "potato" in query.lower():
             session_states[session_id] = "Early blight in Potato"
+
         return JSONResponse(content={"question": query, "answer": response})
     except Exception as e:
         logger.error("RAG chain execution error for query '%s': %s", query, str(e))
         raise HTTPException(status_code=500, detail=f"Error processing query: {str(e)}")
 
-# Endpoint to reset session
+
+# Session reset endpoint
 @app.delete("/reset-session/{session_id}")
 async def reset_session(session_id: str):
     global session_states
     session_states.pop(session_id, None)
     return JSONResponse(content={"message": f"Session {session_id} reset"})
 
-# Run the FastAPI app with Uvicorn
+
+# Run FastAPI with Uvicorn
 if __name__ == "__main__":
     import uvicorn
     print("Starting FastAPI server")

@@ -19,3 +19,7 @@ resmamba/.venv
 Test_Image
 docker-compose.yaml
 docker-compose-dev.yaml
+rag/config.py
+rag/venv
+rag/__pycache__
+rag/.env
