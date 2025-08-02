@@ -115,15 +115,12 @@ const FarmerDashboard = ({ user, onLogout }) => {
   };
 
   useEffect(() => {
-    if(id === '' || id === null){
-      console.log("Uid accessed too early!");
-      return;
-    }
      try{
       onAuthStateChanged(auth, (user) => {
         if(user){
           console.log("Fetch called");
-          const response = fetch(`https://electro-individually-ea-patricia.trycloudflare.com/user/dashboard/${user.uid}`,{
+          console.log(user.uid);
+          const response = fetch(`${import.meta.env.VITE_BACKEND_URL}/user/dashboard/${user.uid}`,{
             method: 'GET',
           })
           .then(response => {
@@ -188,7 +185,7 @@ const FarmerDashboard = ({ user, onLogout }) => {
 
         else{
           console.log("Fetch called");
-          const response = fetch(`https://electro-individually-ea-patricia.trycloudflare.com/user/dashboard/${id}`,{
+          const response = fetch(`${import.meta.env.VITE_BACKEND_URL}/user/dashboard/${id}`,{
             method: 'GET',
           })
           .then(response => {

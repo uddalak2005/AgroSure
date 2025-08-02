@@ -5,14 +5,21 @@ import { useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { useAuth } from '../../context/AuthContext';
 import { Type } from 'lucide-react';
-
+import CustomLoader from '../loader/CustomLoader';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 export const AddFarmer = () => {
 
-  const navigate = useNavigate();
-  const { user, isloggedIn } = useAuth()
-  const [formData, setFormData] = useState({
-    uid: '',
-    kioskUid: user?.id,
+    const navigate = useNavigate();
+    const {user, isloggedIn, logout} = useAuth();
+
+    const [loading,setloading] = useState(false);
+    const [isRegistered,setisRegistered] = useState(false);
+    const [isAgentLoggedOut, setisAgentLoggedOut] = useState(false);
+    const [isFarmerLoggedin, setisFarmerLoggedin] = useState(false);
+
+    const [formData, setFormData] = useState({
+    uid : '',
+    kioskUid:  user?.id, 
     name: '',
     phone: '',
     email: '',
@@ -24,23 +31,38 @@ export const AddFarmer = () => {
     aadhar: '',
   });
 
-  const [loading, setloading] = useState(false);
-  const handleSubmit = async () => {
+  const handleFarmerLogin = async() => {
+    try {
+      const userCreds = await signInWithEmailAndPassword(auth,formData.email,formData.password);
+      if(userCreds){
+        console.log("Famer is logged in! : " , userCreds.user);
+        setisFarmerLoggedin(true);
+      }
+    } catch (error) {
+        console.log("Error logging farmer in");
+    }
+  } 
+
+
+  const handleSubmit = async() => {
+
     setloading(true);
     const Farmeruid = await getfarmerUid(formData.email, formData.password);
-    // Mock registration
-    const payload = {
-      uid: Farmeruid,
-      kioskUid: user.id,
-      aadhar: formData.aadhar || '1234-5678-9012',
-      name: formData.name || "Souherdya Sarkar",
-      email: formData.email || "souherdyasarkar@gmail.com",
-      totalLand: formData.totalLand || '5 acre',
-      locationLat: formData.locationLat || '22.572645',
-      locationLong: formData.locationLong || '88.363892',
-      crops: formData.crops.split(',').map(crop => crop.trim()) || ['Rice', 'Wheat', 'Paddy'],
-      phone: formData.phone || 8910169299,
-    }
+    setisRegistered(true);
+    
+      // Mock registration
+      const payload = {
+        uid : Farmeruid,
+        kioskUid: user.id,
+        aadhar: formData.aadhar || '1234-5678-9012',
+        name: formData.name || "Souherdya Sarkar",
+        email : formData.email || "souherdyasarkar@gmail.com",
+        totalLand: formData.totalLand || '5 acre',
+        locationLat: formData.locationLat || '22.572645',
+        locationLong: formData.locationLong || '88.363892',
+        crops: formData.crops.split(',').map(crop => crop.trim()) || ['Rice','Wheat','Paddy'],
+        phone: formData.phone || 8910169299,
+      }
 
     console.log("payload : ", payload);
 
@@ -56,14 +78,10 @@ export const AddFarmer = () => {
       if (response.ok) {
         const data = await response.json(); // ✅ important step
         console.log("User data set to DB");
-        console.log(data);
-
-        localStorage.setItem("uid", data.user.uid);
-
-        setloading(false);
-
-        // redirect user
-        window.location.href = `${import.meta.env.VITE_AGROSURE_LOGIN_URL}/dashboard/${data.user.uid}`;
+        await logout();
+        setisAgentLoggedOut(true);
+        await handleFarmerLogin();
+        window.location.href = `${import.meta.env.VITE_AGROSURE_LOGIN_URL}/dashboard`;
       }
 
       const data = await response.json();
@@ -114,14 +132,28 @@ export const AddFarmer = () => {
   }
 
   return (
-    <div className='w-[100%] h-[100%] flex items-center justify-center p-2 lg:p-4'>
-      <div className="w-[95%] lg:w-[70%] overflow-auto bg-background flex items-center justify-center">
-        <div className="w-full">
-          <div className="bg-card rounded-xl shadow-lg border border-border p-8">
-            <div className="text-center mb-6">
-              <h1 className="text-2xl font-bold text-foreground mb-2">Add New Farmer</h1>
-              <p className="text-muted-foreground">Register a new Farmer under your jurisdiction</p>
-            </div>
+    <div className='relative w-[100%] h-[100%] flex items-center justify-center p-2 lg:p-4'>
+
+  {loading && (
+  <div className='absolute flex h-[100vh] w-[100vw] bg-white/50 items-center justify-center z-50'>
+    {isFarmerLoggedin ? (
+      <CustomLoader message="Redirecting to farmer dashboard..." />
+    ) : isAgentLoggedOut ? (
+      <CustomLoader message="Logging farmer in..." />
+    ) : isRegistered ? (
+      <CustomLoader message="Logging you out..." />
+    ) : (
+      <CustomLoader message="Registering the farmer..." />
+    )}
+  </div>
+  )}
+    <div className="w-[95%] lg:w-[70%] overflow-auto bg-background flex items-center justify-center">
+      <div className="w-full">
+        <div className="bg-card rounded-xl shadow-lg border border-border p-8">
+          <div className="text-center mb-6">
+            <h1 className="text-2xl font-bold text-foreground mb-2">Add New Farmer</h1>
+            <p className="text-muted-foreground">Register a new Farmer under your jurisdiction</p>
+          </div>
 
             <form className="space-y-4">
               <div>

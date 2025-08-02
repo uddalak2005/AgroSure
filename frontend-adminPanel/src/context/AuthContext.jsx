@@ -102,6 +102,7 @@ export function AuthProvider({ children }) {
 
   const logout = () => {
     localStorage.removeItem('insuranceAgent');
+    auth.signOut();
     setAuthState({
       user: null,
       isLoading: false,
