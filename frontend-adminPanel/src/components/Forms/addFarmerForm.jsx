@@ -5,11 +5,18 @@ import { useNavigate } from 'react-router-dom';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { useAuth } from '../../context/AuthContext';
 import { Type } from 'lucide-react';
-
+import CustomLoader from '../loader/CustomLoader';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 export const AddFarmer = () => {
 
     const navigate = useNavigate();
-    const {user, isloggedIn} = useAuth()
+    const {user, isloggedIn, logout} = useAuth();
+
+    const [loading,setloading] = useState(false);
+    const [isRegistered,setisRegistered] = useState(false);
+    const [isAgentLoggedOut, setisAgentLoggedOut] = useState(false);
+    const [isFarmerLoggedin, setisFarmerLoggedin] = useState(false);
+
     const [formData, setFormData] = useState({
     uid : '',
     kioskUid:  user?.id, 
@@ -24,10 +31,25 @@ export const AddFarmer = () => {
     aadhar : '',
   });
 
-  const [loading,setloading] = useState(false);
+  const handleFarmerLogin = async() => {
+    try {
+      const userCreds = await signInWithEmailAndPassword(auth,formData.email,formData.password);
+      if(userCreds){
+        console.log("Famer is logged in! : " , userCreds.user);
+        setisFarmerLoggedin(true);
+      }
+    } catch (error) {
+        console.log("Error logging farmer in");
+    }
+  } 
+
+
   const handleSubmit = async() => {
+
     setloading(true);
     const Farmeruid = await getfarmerUid(formData.email, formData.password);
+    setisRegistered(true);
+    
       // Mock registration
       const payload = {
         uid : Farmeruid,
@@ -55,8 +77,10 @@ export const AddFarmer = () => {
       });
       if(response.ok){
         console.log("User data set to DB");
-        setloading(false);
-        // window.location.href = `http://localhost:5174/dashboard/${Farmeruid}`;
+        await logout();
+        setisAgentLoggedOut(true);
+        await handleFarmerLogin();
+        window.location.href = `${import.meta.env.VITE_AGROSURE_LOGIN_URL}/dashboard`;
       }
 
       const data = await response.json();
@@ -107,7 +131,21 @@ export const AddFarmer = () => {
   }
 
   return (
-    <div className='w-[100%] h-[100%] flex items-center justify-center p-2 lg:p-4'>
+    <div className='relative w-[100%] h-[100%] flex items-center justify-center p-2 lg:p-4'>
+
+  {loading && (
+  <div className='absolute flex h-[100vh] w-[100vw] bg-white/50 items-center justify-center z-50'>
+    {isFarmerLoggedin ? (
+      <CustomLoader message="Redirecting to farmer dashboard..." />
+    ) : isAgentLoggedOut ? (
+      <CustomLoader message="Logging farmer in..." />
+    ) : isRegistered ? (
+      <CustomLoader message="Logging you out..." />
+    ) : (
+      <CustomLoader message="Registering the farmer..." />
+    )}
+  </div>
+  )}
     <div className="w-[95%] lg:w-[70%] overflow-auto bg-background flex items-center justify-center">
       <div className="w-full">
         <div className="bg-card rounded-xl shadow-lg border border-border p-8">
