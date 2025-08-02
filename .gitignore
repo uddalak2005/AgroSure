@@ -17,3 +17,7 @@ kisan_sathi_service/.env
 resmamba/.env
 resmamba/.venv
 Test_Image
+rag/config.py
+rag/venv
+rag/__pycache__
+rag/.env
