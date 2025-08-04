@@ -93,10 +93,17 @@ const SimpleGoogleTranslate = () => {
           className="bg-green-600 hover:bg-green-700 text-white 
           rounded-lg px-4 py-2 font-medium flex items-center gap-2 
           shadow-lg transition-all duration-200 hover:scale-105"
+<<<<<<< HEAD
           onClick={
           () => {
           setDropdownVisible(prev => !prev)}
           }
+=======
+          onClick={() => {
+            const dropdown = document.getElementById('language-dropdown');
+            dropdown.classList.toggle('hidden');
+          }}
+>>>>>>> 5c75385aa5f93fff442c8aba8d04aa3da857e9db
         >
           <Globe className="h-4 w-4" />
           <span className="hidden sm:inline">

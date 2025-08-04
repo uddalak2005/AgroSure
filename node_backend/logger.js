@@ -21,4 +21,8 @@ const logger = winston.createLogger({
   ]
 });
 
+<<<<<<< HEAD
 export default logger;
+=======
+export default logger;
+>>>>>>> 5c75385aa5f93fff442c8aba8d04aa3da857e9db
