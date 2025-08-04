@@ -1,8 +1,8 @@
 # 🚜 AgriSure.ai – Bridging AI with Bharat’s Farmers
 
-#Team Name: BongoBoltu
-#Team 71
-#Team Members: Uddalak Mukhopadhaya, Nirupon Pal, Sayantan Patra, Souherdya Sarkar
+# Team Name: BongoBoltu
+# Team 71
+# Team Members: Uddalak Mukhopadhaya, Nirupon Pal, Sayantan Patra, Souherdya Sarkar
    
 ## 🌉 Our Belief
 
