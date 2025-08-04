@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react'; // Import React
 import { ArrowLeft, FileText, TrendingUp, CreditCard, Calendar, DollarSign, CheckCircle, Clock, AlertCircle } from "lucide-react";
 import { auth } from '../utils/firebaseConfig';
 
-
-
 const PastReports = ({ user, onBack }) => {
 
     const [insuranceHistory, setInsuranceHistory] = useState([]);
