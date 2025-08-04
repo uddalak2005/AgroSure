@@ -1,175 +1,199 @@
-# 🚜 AgriSure.ai – Bridging AI with Bharat’s Farmers
 
-# Team Name: BongoBoltu
-# Team 71
-# Team Members: Uddalak Mukhopadhyay, Nirupon Pal, Sayantan Patra, Souherdya Sarkar
-   
-## 🌉 Our Belief
 
-**In a world where AI is shaping everything — from markets to medicine — why should its power be reserved only for the few?**
-We believe **AI should not be a privilege, but a bridge** — one that empowers everyone, regardless of their education or language.
+# 🚜 AgriSure.ai – AI-Powered Insurance & Loans for Bharat’s Farmers  
+*Team: BongoBoltu (Team 71)*  
+**Members:** Uddalak Mukhopadhyay, Nirupon Pal, Sayantan Patra, Souherdya Sarkar  
 
 ---
 
-## 🧠 What We’re Building
+## 🌱 Vision
 
-**AgriSure.ai** is a **multilingual, AI-powered Loan, Insurance & Microfinance Assistant** designed for Indian farmers.
+> **"If AI can power billion-dollar decisions on Wall Street, why not support a farmer in India deciding his next crop?"**
 
-We use **Neural Prophet**, **Computer Vision**, and **RAG-based NLP** to:
-
-* 🔍 Predict yield & financial eligibility
-* 💸 Automate loan & insurance workflows
-* 🗣️ Offer voice-based claim explanations
-* 📤 Verify claims through image + geolocation + satellite data
+**AgriSure.ai** is a multilingual AI platform designed to make crop insurance and loan accessibility **fraud-proof, explainable, and inclusive** — even for farmers using only a **keypad phone**.
 
 ---
 
-## 🏦 1. Smart Loan Engine – Powered by Neural Prophet
+## 🧩 Features
 
-> *"Plan ahead, borrow smartly, and repay confidently."*
+### 🏦 1. Smart Loan Recommender
+✅ Approves crop loans based on:
+- 📍 GPS-based land data (via Bhulekh / PM-KISAN)
+- 🌾 Soil health (NPK, Organic Carbon)
+- ☁️ Weather + NDVI forecast using `NeuralProphet`
+- 🧠 Yield forecasting per crop-season
 
-### 🤖 Tech Stack
-
-* **Model**: `NeuralProphet` (based on PyTorch) – handles seasonal crop data, trend changes, and external regressors.
-* **Inputs**:
-
-  * Historical yield (district & block level)
-  * 🌧️ Rainfall & temperature
-  * 🧪 Soil health and Historical yield data(30 years)(ICAR data and ICRISAT 30 years crop data)
-  * 🧭 GPS-tagged land size (from Landsat-8, Sentienal, Bhulekh)
-
-### 🧮 Output: Loan Eligibility JSON
-
-* **Climate Score** — our AI replacement for CIBIL
-* Yield projection (kg/ha, kg/acre)
-* Risk tier (Low / Medium / High)
-* Interest subsidy suggestions
-* Custom crop loan recommendation
-
-### 🧪 How We Built It
-
-1. Combined weather + NDVI + soil NPK as external regressors to NeuralProphet.
-2. Created a GPS-based region joiner to fetch precise yield history for the farmer's land.
-3. Normalized all inputs to match Prophet scale.
-4. Created an explainability layer: *Why you got this score?*
-
-### 🔐 Impact:
-
-* 10x better transparency in loan approvals
-* Removes unfair credit rejections due to lack of CIBIL
-* Aligns loans with actual productivity forecast
+```json
+{
+  "climate_score": 78.3,
+  "predicted_yield": "1412 kg/ha",
+}
+````
 
 ---
 
-## 🛡️ 2. Insurance Engine – Automating Claim Verification
+### 🛡️ 2. AI-Based Crop Insurance Claim Verifier
 
-> *"From 10-day inspections to instant AI claims."*
+Checks the validity of claims using:
 
-### ⚙️ Modules:
+* 🧠 Vision AI model (`ResMamba`) for leaf damage
+* 🛰️ Geofencing via GPS metadata
+* 🌧️ Weather + NDVI anomalies
 
-1. **Crop Damage Classification (EfficientNetV2-RW-M)**
-
-   * Classifies: Healthy, Mild Damage, Severe Damage
-   * Input: Farmer's uploaded image
-
-2. **Crop Type Detection (ConvNeXt-Tiny)**
-
-   * Verifies if claim matches the insured crop
-   * Prevents mismatch or false declarations
-
-3. **Geo-tag + Satellite Sync**
-
-   * Checks if image is taken within farmer’s land
-   * Uses PM-KISAN/Bhulekh polygon + GPS from image
-
-4. **Weather Sync (Tomorrow\.io)**
-
-   * Validates if damage aligns with recent rainfall/wind/storm events
-
-### 🔄 Manual Audit → Automated Audit
-
-* Old Method: Officer visits field, checks image, verifies ID, files report manually.
-* New Method: AI handles this via:
-
-  * ✅ CV model for damage & crop type for validation with policy documents
-  * 📍 GPS + land polygon validation for field verification
-  * 🌦️ Weather event match
-* Final JSON verdict: `is_claim_valid: True/False`, reason, and payout percentage
+```json
+{
+  "is_claim_valid": true,
+  "Crop_type": "Strawberry",
+  "reason": " severe leaf rot."
+}
+```
 
 ---
 
-## 🧠 3. Voice-first Insurance Explainer (RAG Agent)
+### 📞 3. AI-Powered IVR System (Keypad Phones Supported!)
 
-> *"Ask anything about your crop, scheme, or subsidy — in your own language."*
+> Press `1` for loan eligibility
+> Press `2` to verify insurance claim
+> Press `3` to speak to AgriQBot
 
-### 🔧 Built Using:
+Built using:
 
-* **LangChain + FAISS + RAG**
-* Model: `all-MiniLM-L6-v2` + fine-tuning on `KisanVaani/agriculture-qa-english-only`
-
-### 📣 Features:
-
-* Multilingual Q\&A: Hindi, Bengali, English
-* Input via voice or text
-* Explains:
-
-  * PMFBY steps
-  * Subsidy eligibility
-  * Claim process
-  * Loan documentation
-
-### 🎯 RAG Improvements
-* Fine-tuned on custom Dataset
-* Custom chunk size: `350 tokens`, overlap `150`
-* Translation + language detection layer
-* Real farmer questions curated and embedded
+* 🔁 Twilio IVR
+* 🧠 Backend AI (FastAPI)
+* 🗣️ Multilingual TTS + ASR
+* 📞 Keypad (DTMF) + voice navigation
 
 ---
 
-## 🧪 Real-World Validation
+### 🧠 4. LangChain + RAG Multilingual Assistant
 
-| **Process**             | **Before**                         | **With AgriSure.ai**               |
-| ----------------------- | ---------------------------------- | ---------------------------------- |
-| Crop Damage Audit       | Manual, slow, error-prone          | CV + weather + GPS automated check |
-| Loan Eligibility        | Based on income/CIBIL (unreliable) | AI yield + climate risk + NPK      |
-| Insurance Understanding | Complex PDFs in English            | Voice agent in Hindi/Bengali       |
+Explains:
 
----
+* Why a loan was rejected
+* Insurance policy clauses
+* Government schemes (PMFBY, PM-KISAN)
 
-## 🚀 Impact Metrics
+> 💬 Supports: Hindi, Bengali, English
 
-* 🧾 Up to 80% faster claim resolution
-* 💰 Credit access for farmers with 0 CIBIL
-* 🗣️ Voice-first UI works for semi-literate users
-* 🔐 Reduced fraud via image/GPS verification
+Uses:
 
----
-
-## 🔧 Tech Stack
-
-* Forecasting: **NeuralProphet**
-* CV Models: **EfficientNetV2-RW-M**, **ConvNeXt-Tiny**
-* NLP: **LangChain**, **RAG**, **all-MiniLM-L6-v2**
-* APIs: **Google Earth Engine**
-* GIS: **Bhulekh**, **Sentienal**, **Landsat-8**
+* `LangChain` + FAISS
+* `MiniLM` embeddings (multilingual)
+* Coreference + translation
 
 ---
 
-## 🧗 Challenges Faced
+## ⚙️ Tech Stack
 
-### 1. NeuralProphet tuning for seasonal crops
+| Layer         | Tech Used                                |
+| ------------- | ---------------------------------------- |
+| 🧠 AI Models  | Hugging Face Spaces                      |
+| 📦 Backend    | FastAPI + Uvicorn (Docker)               |
+| 🌐 Frontend   | Vercel (Next.js)                         |
+| ☁️ Hosting    | Google Cloud Run + Cloud Storage         |
+| 📊 Monitoring | Prometheus + Grafana + Loki              |
+| 🛠️ DevOps    | GitHub Actions + Docker + CI/CD pipeline |
 
-* Solved using weekly NDVI + rainfall regressors
+---
 
-### 2. Vision inference delay
+## 📊 Monitoring Setup
 
-* Used `torch.inference_mode()` and float16 batching
+| Metric                | Tool           |
+| --------------------- | -------------- |
+| Inference Latency     | Prometheus     |
+| AI Logs (error/info)  | Loki           |
+| Model Downtime Alerts | Grafana Alerts |
+| IVR Error Traces      | Twilio + Loki  |
 
-### 3. GPS mismatch (lat, long vs long, lat)
+---
 
-* Fixed with coordinate standardization
+## 🔁 Real-World Simulation
 
-### 4. Multilingual RAG accuracy
+| Scenario           | Traditional Way           | With AgriSure.ai                      |
+| ------------------ | ------------------------- | ------------------------------------- |
+| Loan Eligibility   | Manual bank approval      | AI yield + subsidy scoring            |
+| Claim Processing   | Weeks of field inspection | Instant vision + weather verification |
+| Language Barrier   | English PDF policies      | Voice & text in local languages       |
+| Phone Requirements | Smartphone needed         | Keypad IVR supported                  |
 
-* Used fine-tuning + translation validation loop
+---
 
+## 🧪 Sample Workflows
+
+### ✅ Claim Verification
+
+```bash
+POST /verify-claim
+Content-Type: multipart/form-data
+
+- file: damage.jpg
+- gps_lat: 23.17
+- gps_lon: 88.41
+```
+
+### 🧠 Loan Recommender
+
+```bash
+POST /recommend-loan
+{
+  "lat": 22.57,
+  "lon": 88.36,
+  "soil_n": 78,
+  "soil_p": 46,
+  "soil_k": 52,
+  "oc": 0.61
+}
+```
+
+---
+
+## 🧠 AI Models
+
+* `NeuralProphet` – Crop yield + weather regression
+* `ResMamba` – Crop damage image classification
+* `LangChain + MiniLM` – RAG-based policy explainer
+* `Semantic memory + coreference` for follow-up queries
+
+---
+
+## 📦 Deployment
+
+### ✅ Infrastructure
+
+* ☁️ GCP: Cloud Run, Storage, Secret Manager
+* 🧠 HuggingFace Spaces: For all inference APIs
+* 🌐 Vercel: Web frontend
+* 📞 Twilio: IVR + SMS routing
+* 🔍 Loki: Logs from FastAPI + IVR flow
+
+### 🐳 Dockerized
+
+```bash
+docker build -t agri-backend .
+docker run -d -p 8000:8000 agri-backend
+```
+
+### 📟 CI/CD
+
+```yaml
+# GitHub Actions
+- On Push:
+  - Run tests
+  - Build Docker
+  - Deploy to GCP
+```
+
+---
+
+## 🙌 Impact
+
+* 📞 Runs even on non-smartphones
+* 🌾 Promotes fair insurance payouts
+* 🌐 Brings AI to the grassroots
+
+---
+
+## 📎 License
+
+MIT © 2025 BongoBoltu Team
+Built on Infosys Global Hackathon 2025
