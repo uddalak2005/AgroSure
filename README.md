@@ -2,7 +2,7 @@
 
 # Team Name: BongoBoltu
 # Team 71
-# Team Members: Uddalak Mukhopadhaya, Nirupon Pal, Sayantan Patra, Souherdya Sarkar
+# Team Members: Uddalak Mukhopadhyay, Nirupon Pal, Sayantan Patra, Souherdya Sarkar
    
 ## 🌉 Our Belief
 
