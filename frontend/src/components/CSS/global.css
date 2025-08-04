@@ -1,0 +1,18 @@
+  /* Hide default Google Translate UI */
+  .goog-te-banner-frame.skiptranslate,
+  .goog-te-gadget-icon,
+  .goog-te-gadget-simple,
+  .goog-te-gadget,
+  .goog-te-combo {
+      display: none !important;
+  }
+
+  body {
+      top: 0 !important;
+      /* Prevent layout shift when banner is hidden */
+  }
+
+  #google_translate_element {
+      opacity : 1;
+      /* Optional: if you want to fully hide it */
+  }
