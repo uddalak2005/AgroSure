@@ -1,6 +1,6 @@
 
 
-# 🚜 AgriSure.ai – AI-Powered Insurance & Loans for Bharat’s Farmers  
+# 🚜 AgroSure.ai – AI-Powered Insurance & Loans for Bharat’s Farmers  
 *Team: BongoBoltu (Team 71)*  
 **Members:** Uddalak Mukhopadhyay, Nirupon Pal, Sayantan Patra, Souherdya Sarkar  
 
